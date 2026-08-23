@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { attempt } from "./result";
-import { fetchMarketSnapshot } from "./providers/dexscreener.server";
+import { fetchMarket } from "./providers/market.server";
 import { fetchCandles, fetchTrades } from "./providers/geckoterminal.server";
 import {
   fetchTokenMeta,
@@ -11,7 +11,7 @@ import {
 } from "./providers/solscan.server";
 
 export const getMarket = createServerFn({ method: "GET" }).handler(async () =>
-  attempt("dexscreener", fetchMarketSnapshot),
+  attempt("dexscreener", fetchMarket),
 );
 
 export const getCandles = createServerFn({ method: "GET" })

@@ -1,8 +1,67 @@
 import { XNOVA } from "../config";
-import type { Candle, Trade } from "../types";
+import type { Candle, MarketSnapshot, Trade } from "../types";
 import { cachedJson, getJson } from "./http.server";
 
 const BASE = "https://api.geckoterminal.com/api/v2";
+
+const num = (v: unknown): number | null => {
+  const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) ? n : null;
+};
+
+interface GtPool {
+  attributes?: {
+    address?: string;
+    name?: string;
+    base_token_price_usd?: string;
+    base_token_price_native_currency?: string;
+    fdv_usd?: string;
+    market_cap_usd?: string | null;
+    reserve_in_usd?: string;
+    pool_created_at?: string;
+    price_change_percentage?: Record<string, string>;
+    volume_usd?: Record<string, string>;
+    transactions?: Record<string, { buys?: number; sells?: number }>;
+  };
+  relationships?: { dex?: { data?: { id?: string } } };
+}
+
+/** Market snapshot from the GeckoTerminal pool endpoint (fallback provider). */
+export async function fetchPoolMarket(): Promise<MarketSnapshot> {
+  return cachedJson("gt:pool", 15_000, async () => {
+    const payload = await getJson<{ data?: GtPool }>(
+      `${BASE}/networks/solana/pools/${XNOVA.primaryPair}`,
+    );
+    const a = payload.data?.attributes;
+    if (!a) throw new Error("No GeckoTerminal pool data");
+    const [baseSymbol, quoteSymbol] = (a.name ?? "").split(" / ");
+
+    return {
+      priceUsd: num(a.base_token_price_usd),
+      priceNative: num(a.base_token_price_native_currency),
+      change: {
+        m5: num(a.price_change_percentage?.["m5"]),
+        h1: num(a.price_change_percentage?.["h1"]),
+        h6: num(a.price_change_percentage?.["h6"]),
+        h24: num(a.price_change_percentage?.["h24"]),
+      },
+      volume24h: num(a.volume_usd?.["h24"]),
+      liquidityUsd: num(a.reserve_in_usd),
+      fdv: num(a.fdv_usd),
+      marketCap: num(a.market_cap_usd) ?? num(a.fdv_usd),
+      txns24h: {
+        buys: num(a.transactions?.["h24"]?.buys),
+        sells: num(a.transactions?.["h24"]?.sells),
+      },
+      pairAddress: a.address ?? XNOVA.primaryPair,
+      dexId: payload.data?.relationships?.dex?.data?.id ?? null,
+      baseSymbol: baseSymbol ?? null,
+      baseName: baseSymbol ?? null,
+      quoteSymbol: quoteSymbol ?? null,
+      pairCreatedAt: a.pool_created_at ? Date.parse(a.pool_created_at) : null,
+    } satisfies MarketSnapshot;
+  });
+}
 
 interface OhlcvResponse {
   data?: { attributes?: { ohlcv_list?: number[][] } };
