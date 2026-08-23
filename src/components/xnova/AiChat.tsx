@@ -31,6 +31,17 @@ export function AiChat() {
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    const play = () => void v.play().catch(() => undefined);
+    play();
+    v.addEventListener("canplay", play);
+    return () => v.removeEventListener("canplay", play);
+  }, []);
 
   const mutation = useMutation({
     mutationFn: async (next: Msg[]) => ask({ data: { messages: next } }),
@@ -61,6 +72,7 @@ export function AiChat() {
   return (
     <section className="panel relative overflow-hidden">
       <video
+        ref={videoRef}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60"
         src={bgVideo.url}
         autoPlay
