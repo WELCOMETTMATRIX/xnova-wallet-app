@@ -11,3 +11,21 @@ export async function attempt<T>(source: string, loader: () => Promise<T>): Prom
     return { ok: false, error: message, source, fetchedAt: Date.now() };
   }
 }
+
+/** Reject after `ms` so a slow provider degrades to an unavailable state
+ * instead of blowing the request budget and returning a 500. */
+export function withTimeout<T>(ms: number, loader: () => Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms);
+    loader().then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
