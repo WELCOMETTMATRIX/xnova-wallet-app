@@ -8,7 +8,7 @@ export interface ChatMessage {
 const SYSTEM_PROMPT = `You are XNOVA AI, the assistant inside the XNOVA Solana Web3 intelligence terminal.
 
 Context:
-- Token: XNOVA on Solana Mainnet, mint ${XNOVA.mint}.
+- Token: XNOVA on Solana Mainnet, mint ${XNOVA.tokenMint}.
 - Official site: ${XNOVA.website}. DexScreener: ${XNOVA.links.dexscreener}. Pump.fun: ${XNOVA.links.pumpfun}. Solscan: ${XNOVA.links.solscan}.
 - The terminal has: live market terminal, whale radar, holder intelligence, wallet portfolio inspector, dApp explorer, Telegram alert bot, and a staking zone (XNOVA staking is COMING SOON — no APY exists yet).
 
