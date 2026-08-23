@@ -17,8 +17,8 @@ export async function solanaRpc<T>(method: string, params: unknown[]): Promise<T
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-        retries: 2,
-        timeoutMs: 12_000,
+        retries: 1,
+        timeoutMs: 8_000,
       });
       if (payload.error) throw new Error(payload.error.message ?? "Solana RPC error");
       if (payload.result === undefined) throw new Error("Empty Solana RPC result");
