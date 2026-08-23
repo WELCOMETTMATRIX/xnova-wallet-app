@@ -7,6 +7,12 @@ import { sendTelegram } from "./telegram.server";
 
 const UNAVAILABLE = "Data temporarily unavailable.";
 
+/** Surface the upstream reason so a failing source is diagnosable from chat. */
+function unavailable(error: unknown): string {
+  const detail = error instanceof Error ? error.message : String(error ?? "");
+  return detail ? `${UNAVAILABLE}\n<code>${detail.slice(0, 220)}</code>` : UNAVAILABLE;
+}
+
 /** Chats subscribed via /watch (in-memory; wire to a store for persistence). */
 const watchers = new Set<string>();
 
@@ -48,8 +54,8 @@ async function command(cmd: string, chatId: string) {
       try {
         const m = await fetchTokenMeta();
         meta = `\nSupply: <b>${formatNum(m.supply)}</b>\nDecimals: ${m.decimals ?? "—"}\nHolders: <b>${formatNum(m.holders)}</b>`;
-      } catch {
-        meta = `\n${UNAVAILABLE}`;
+      } catch (error) {
+        meta = `\n${unavailable(error)}`;
       }
       return reply(
         chatId,
@@ -63,8 +69,8 @@ async function command(cmd: string, chatId: string) {
           chatId,
           `<b>XNOVA PRICE</b>\nPrice: <b>${formatUsd(m.priceUsd, 8)}</b>\n1h: ${formatPct(m.change.h1)}\n24h: ${formatPct(m.change.h24)}\nMarket cap: ${formatUsd(m.marketCap)}`,
         );
-      } catch {
-        return reply(chatId, UNAVAILABLE);
+      } catch (error) {
+        return reply(chatId, unavailable(error));
       }
     }
     case "/chart":
@@ -82,8 +88,8 @@ async function command(cmd: string, chatId: string) {
           )
           .join("\n");
         return reply(chatId, `<b>XNOVA TOP HOLDERS</b>\nTotal: ${formatNum(total)}\n\n${rows}`);
-      } catch {
-        return reply(chatId, UNAVAILABLE);
+      } catch (error) {
+        return reply(chatId, unavailable(error));
       }
     }
     case "/volume": {
@@ -93,8 +99,8 @@ async function command(cmd: string, chatId: string) {
           chatId,
           `<b>XNOVA VOLUME (24h)</b>\nVolume: <b>${formatUsd(m.volume24h)}</b>\nBuys: ${formatNum(m.txns24h.buys)}\nSells: ${formatNum(m.txns24h.sells)}`,
         );
-      } catch {
-        return reply(chatId, UNAVAILABLE);
+      } catch (error) {
+        return reply(chatId, unavailable(error));
       }
     }
     case "/liquidity": {
@@ -104,8 +110,8 @@ async function command(cmd: string, chatId: string) {
           chatId,
           `<b>XNOVA LIQUIDITY</b>\nPool: <b>${formatUsd(m.liquidityUsd)}</b>\nDex: ${m.dexId ?? "—"}\nPair: <code>${m.pairAddress}</code>`,
         );
-      } catch {
-        return reply(chatId, UNAVAILABLE);
+      } catch (error) {
+        return reply(chatId, unavailable(error));
       }
     }
     case "/whales": {
@@ -119,8 +125,8 @@ async function command(cmd: string, chatId: string) {
           )
           .join("\n");
         return reply(chatId, `<b>XNOVA WHALE ACTIVITY</b>\n\n${rows}`);
-      } catch {
-        return reply(chatId, UNAVAILABLE);
+      } catch (error) {
+        return reply(chatId, unavailable(error));
       }
     }
     case "/alerts":
