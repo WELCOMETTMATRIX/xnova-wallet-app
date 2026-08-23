@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+
 /**
  * Server-side environment resolution.
  *
@@ -21,10 +23,18 @@ export const thirdwebClientId = () =>
 
 export const thirdwebSecretKey = () => env("THIRDWEB_SECRET_KEY");
 
-export const telegramToken = () =>
-  env("TELEGRAM_BOT_TOKEN", "TELEGRAM_BOT", "TELEGRAM_TOKEN", "TELEGRAM_BOT_API_KEY");
+export const telegramApiKey = () =>
+  env("TELEGRAM_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_BOT", "TELEGRAM_TOKEN", "TELEGRAM_BOT_API_KEY");
 
 export const telegramChatId = () => env("TELEGRAM_CHAT_ID", "TELEGRAM_CHAT", "TELEGRAM_GROUP_ID");
+
+export const lovableApiKey = () => env("LOVABLE_API_KEY");
+
+export function telegramWebhookSecret(): string {
+  const key = telegramApiKey();
+  if (!key) throw new Error("Telegram API key is not configured");
+  return createHash("sha256").update(`telegram-webhook:${key}`).digest("base64url");
+}
 
 export const solanaRpcUrl = () => solanaRpcUrls()[0]!;
 
