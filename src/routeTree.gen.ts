@@ -10,7 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DappsRouteImport } from './routes/dapps'
 import { Route as MarketsRouteImport } from './routes/markets'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as StakingRouteImport } from './routes/staking'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as ApiPublicXnovaScanRouteImport } from './routes/api/public/xnova/scan'
 
@@ -19,9 +22,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DappsRoute = DappsRouteImport.update({
+  id: '/dapps',
+  path: '/dapps',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketsRoute = MarketsRouteImport.update({
   id: '/markets',
   path: '/markets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StakingRoute = StakingRouteImport.update({
+  id: '/staking',
+  path: '/staking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTelegramWebhookRoute =
@@ -38,41 +56,68 @@ const ApiPublicXnovaScanRoute = ApiPublicXnovaScanRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dapps': typeof DappsRoute
   '/markets': typeof MarketsRoute
+  '/portfolio': typeof PortfolioRoute
+  '/staking': typeof StakingRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/xnova/scan': typeof ApiPublicXnovaScanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dapps': typeof DappsRoute
   '/markets': typeof MarketsRoute
+  '/portfolio': typeof PortfolioRoute
+  '/staking': typeof StakingRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/xnova/scan': typeof ApiPublicXnovaScanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dapps': typeof DappsRoute
   '/markets': typeof MarketsRoute
+  '/portfolio': typeof PortfolioRoute
+  '/staking': typeof StakingRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/api/public/xnova/scan': typeof ApiPublicXnovaScanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/markets' | '/api/public/telegram/webhook' | '/api/public/xnova/scan'
+    | '/'
+    | '/dapps'
+    | '/markets'
+    | '/portfolio'
+    | '/staking'
+    | '/api/public/telegram/webhook'
+    | '/api/public/xnova/scan'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/markets' | '/api/public/telegram/webhook' | '/api/public/xnova/scan'
+    | '/'
+    | '/dapps'
+    | '/markets'
+    | '/portfolio'
+    | '/staking'
+    | '/api/public/telegram/webhook'
+    | '/api/public/xnova/scan'
   id:
     | '__root__'
     | '/'
+    | '/dapps'
     | '/markets'
+    | '/portfolio'
+    | '/staking'
     | '/api/public/telegram/webhook'
     | '/api/public/xnova/scan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DappsRoute: typeof DappsRoute
   MarketsRoute: typeof MarketsRoute
+  PortfolioRoute: typeof PortfolioRoute
+  StakingRoute: typeof StakingRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
   ApiPublicXnovaScanRoute: typeof ApiPublicXnovaScanRoute
 }
@@ -86,11 +131,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dapps': {
+      id: '/dapps'
+      path: '/dapps'
+      fullPath: '/dapps'
+      preLoaderRoute: typeof DappsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/markets': {
       id: '/markets'
       path: '/markets'
       fullPath: '/markets'
       preLoaderRoute: typeof MarketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staking': {
+      id: '/staking'
+      path: '/staking'
+      fullPath: '/staking'
+      preLoaderRoute: typeof StakingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/telegram/webhook': {
@@ -112,7 +178,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DappsRoute: DappsRoute,
   MarketsRoute: MarketsRoute,
+  PortfolioRoute: PortfolioRoute,
+  StakingRoute: StakingRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
   ApiPublicXnovaScanRoute: ApiPublicXnovaScanRoute,
 }
