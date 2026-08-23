@@ -78,7 +78,10 @@ function Alerts() {
     mutationFn: () => triggerAlertScan(),
     onSuccess: (res) => {
       void qc.invalidateQueries({ queryKey: ["xnova", "alert-status"] });
-      if (!res.ok) return toast.error(`Scan failed: ${res.error}`);
+      if (!res.ok) {
+        toast.error(`Scan failed: ${res.error}`);
+        return;
+      }
       toast.success(
         res.data.skipped
           ? "Scan skipped — Telegram is not configured"
