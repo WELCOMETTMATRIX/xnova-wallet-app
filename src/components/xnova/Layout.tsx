@@ -10,6 +10,7 @@ const NAV = [
   { to: "/", label: "Terminal" },
   { to: "/markets", label: "Markets" },
   { to: "/dapps", label: "dApps" },
+  { to: "/ai", label: "AI Chat" },
   { to: "/portfolio", label: "Portfolio" },
   { to: "/alerts", label: "Alerts" },
   { to: "/staking", label: "Staking" },

@@ -52,7 +52,7 @@ export function AiChat() {
     const content = text.trim();
     if (!content || mutation.isPending) return;
     setError(null);
-    const next: Msg[] = [...messages, { role: "user", content }].slice(-24);
+    const next: Msg[] = [...messages, { role: "user" as const, content }].slice(-24);
     setMessages(next);
     setInput("");
     mutation.mutate(next.filter((m) => m.role === "user" || m.role === "assistant"));

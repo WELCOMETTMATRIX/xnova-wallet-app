@@ -5,8 +5,8 @@ import { useMemo } from "react";
 
 const WALLET_IDS = [
   "io.metamask",
-  "com.crypto.wallet",
   "me.rainbow",
+  "com.crypto.wallet",
   "com.trustwallet.app",
   "org.uniswap",
   "com.okex.wallet",
@@ -24,7 +24,7 @@ export function ConnectInner({ clientId }: { clientId: string }) {
       <ConnectButton
         client={client}
         wallets={wallets}
-        connectButton={{ label: "CONNECT WALLET" }}
+        connectButton={{ label: "XNOVA SOLANA TERMINAL" }}
         detailsButton={{ style: { borderRadius: "4px", height: "36px" } }}
         connectModal={{
           size: "compact",
@@ -33,10 +33,10 @@ export function ConnectInner({ clientId }: { clientId: string }) {
         }}
         theme={darkTheme({
           colors: {
-            modalBg: "hsl(240, 4%, 9%)",
+            modalBg: "hsl(269, 83%, 11%)",
             borderColor: "hsl(0, 100%, 53%)",
             separatorLine: "hsl(0, 96%, 45%)",
-            tertiaryBg: "hsl(240, 4%, 14%)",
+            tertiaryBg: "hsl(0, 1%, 48%)",
             selectedTextColor: "hsl(0, 0%, 100%)",
             accentButtonBg: "hsl(0, 96%, 45%)",
           },
