@@ -1,16 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { telegramApiKey, telegramWebhookSecret } from "@/lib/xnova/env.server";
 
 /**
- * Telegram bot webhook. Register with:
- * https://api.telegram.org/bot<TOKEN>/setWebhook?url=<APP>/api/public/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>
+ * Telegram bot webhook.
+ *
+ * The webhook secret is derived from the connector API key so the endpoint
+ * can be verified without exposing the raw bot token. Register with Telegram
+ * via the Lovable connector gateway using setWebhook.
  */
 export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env["TELEGRAM_WEBHOOK_SECRET"];
-        if (!secret) return new Response("Webhook secret not configured", { status: 503 });
-        if (request.headers.get("x-telegram-bot-api-secret-token") !== secret) {
+        if (!telegramApiKey()) {
+          return new Response("Telegram not configured", { status: 503 });
+        }
+        const expected = telegramWebhookSecret();
+        const actual = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
+        if (actual !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
 
