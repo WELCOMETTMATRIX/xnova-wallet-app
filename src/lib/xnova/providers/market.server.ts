@@ -4,17 +4,21 @@ import { fetchPoolMarket } from "./geckoterminal.server";
 
 /**
  * Market snapshot with provider fallback.
- * DexScreener is primary; newly launched or thinly indexed pools are often missing there,
- * in which case GeckoTerminal's pool endpoint serves the same fields.
+ *
+ * DexScreener is primary. Newly launched or thinly indexed pools are often absent there,
+ * so GeckoTerminal's pool endpoint supplies the same fields. A DexScreener miss is cached
+ * for a cooldown window so the terminal does not re-issue a request that is known to fail.
  */
+const DEX_COOLDOWN_MS = 5 * 60_000;
+let dexUnavailableUntil = 0;
+
 export async function fetchMarket(): Promise<MarketSnapshot> {
-  try {
-    return await fetchMarketSnapshot();
-  } catch (dexError) {
+  if (Date.now() > dexUnavailableUntil) {
     try {
-      return await fetchPoolMarket();
+      return await fetchMarketSnapshot();
     } catch {
-      throw dexError instanceof Error ? dexError : new Error("Market data unavailable");
+      dexUnavailableUntil = Date.now() + DEX_COOLDOWN_MS;
     }
   }
+  return fetchPoolMarket();
 }
