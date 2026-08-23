@@ -1,5 +1,5 @@
 import { XNOVA, formatNum, formatPct, formatUsd, shortAddress, solscanTx } from "./config";
-import { fetchMarketSnapshot } from "./providers/dexscreener.server";
+import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
 import { fetchTrades } from "./providers/geckoterminal.server";
 import { fetchTokenMeta, fetchTopHolders } from "./providers/solscan.server";
 import { sendTelegram } from "./telegram.server";

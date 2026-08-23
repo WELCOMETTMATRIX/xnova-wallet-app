@@ -1,4 +1,4 @@
-import { fetchMarketSnapshot } from "./providers/dexscreener.server";
+import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
 import { fetchTrades } from "./providers/geckoterminal.server";
 import { formatPriceAlert, formatTradeAlert, sendTelegram, telegramConfigured } from "./telegram.server";
 import { formatPct, formatUsd } from "./config";
