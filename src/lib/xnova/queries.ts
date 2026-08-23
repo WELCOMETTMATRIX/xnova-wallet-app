@@ -10,8 +10,8 @@ export const marketQuery = () =>
   queryOptions({
     queryKey: ["xnova", "market"],
     queryFn: () => getMarket(),
-    refetchInterval: 20_000,
-    staleTime: 10_000,
+    refetchInterval: 30_000,
+    staleTime: 25_000,
   });
 
 export const candlesQuery = (label: TimeframeLabel) => {
@@ -19,8 +19,8 @@ export const candlesQuery = (label: TimeframeLabel) => {
   return queryOptions({
     queryKey: ["xnova", "candles", label],
     queryFn: () => getCandles({ data: { timeframe: tf.timeframe, aggregate: tf.aggregate } }),
-    refetchInterval: 30_000,
-    staleTime: 20_000,
+    refetchInterval: 45_000,
+    staleTime: 40_000,
   });
 };
 
@@ -28,7 +28,7 @@ export const tradesQuery = (minUsd = 0) =>
   queryOptions({
     queryKey: ["xnova", "trades", minUsd],
     queryFn: () => getTrades({ data: { minUsd } }),
-    refetchInterval: 20_000,
+    refetchInterval: 30_000,
   });
 
 export const holdersQuery = (limit = 20) =>
