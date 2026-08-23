@@ -18,7 +18,7 @@ export function HoldersPanel({ limit = 20 }: { limit?: number }) {
         {isPending ? (
           <Loading label="Loading holders" />
         ) : !data?.ok ? (
-          <Unavailable source="Solscan holders" detail={data?.error} />
+          <Unavailable source="Holder data" detail={data?.error} />
         ) : (
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-surface">

@@ -1,27 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ClientOnly } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
-import { useState } from "react";
+import { Search, Wallet } from "lucide-react";
+import { Suspense, lazy, useEffect, useState } from "react";
 
 import { TerminalLayout } from "@/components/xnova/Layout";
+import { BrandLogo } from "@/components/xnova/BrandLogo";
 import { Loading, Panel, Stat, Unavailable } from "@/components/xnova/primitives";
 import { XNOVA, formatNum, formatUsd, shortAddress, solscanAccount } from "@/lib/xnova/config";
-import { marketQuery } from "@/lib/xnova/queries";
-import { getSolPrice, getWalletPortfolio } from "@/lib/xnova/wallet.functions";
+import { publicConfigQuery } from "@/lib/xnova/queries";
+import { getWalletPortfolio } from "@/lib/xnova/wallet.functions";
+import {
+  loadSavedSolanaAddress,
+  saveSolanaAddress,
+  useConnectedWallet,
+} from "@/lib/xnova/wallet-store";
+
+const EvmBalance = lazy(() =>
+  import("@/components/xnova/EvmBalance").then((m) => ({ default: m.EvmBalance })),
+);
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
     meta: [
-      { title: "XNOVA Portfolio — Solana Wallet Holdings" },
+      { title: "XNOVA Portfolio — Live Wallet Balances" },
       {
         name: "description",
         content:
-          "Inspect any Solana wallet: SOL balance, XNOVA holdings, SPL tokens and allocation, priced with live market data.",
+          "Live balances for your connected wallet plus any Solana address: SOL, XNOVA and every SPL holding priced with real market data.",
       },
-      { property: "og:title", content: "XNOVA Portfolio — Solana Wallet Holdings" },
+      { property: "og:title", content: "XNOVA Portfolio — Live Wallet Balances" },
       {
         property: "og:description",
-        content: "Non-custodial Solana portfolio view with live SOL and XNOVA valuation.",
+        content: "Non-custodial portfolio view with live SOL, XNOVA and SPL token valuation.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -31,8 +42,19 @@ export const Route = createFileRoute("/portfolio")({
 });
 
 function Portfolio() {
+  const connected = useConnectedWallet();
+  const { data: config } = useQuery(publicConfigQuery());
   const [input, setInput] = useState("");
   const [address, setAddress] = useState("");
+
+  // Restore the last inspected Solana address after hydration.
+  useEffect(() => {
+    const saved = loadSavedSolanaAddress();
+    if (saved) {
+      setInput(saved);
+      setAddress(saved);
+    }
+  }, []);
 
   const portfolio = useQuery({
     queryKey: ["xnova", "portfolio", address],
@@ -40,19 +62,8 @@ function Portfolio() {
     enabled: address.length >= 32,
     refetchInterval: 60_000,
   });
-  const solPrice = useQuery({
-    queryKey: ["xnova", "sol-price"],
-    queryFn: () => getSolPrice(),
-    refetchInterval: 60_000,
-  });
-  const market = useQuery(marketQuery());
 
   const p = portfolio.data?.ok ? portfolio.data.data : null;
-  const sol = solPrice.data?.ok ? solPrice.data.data.usd : null;
-  const xnovaPrice = market.data?.ok ? market.data.data.priceUsd : null;
-  const solValue = p && sol != null ? p.solBalance * sol : null;
-  const xnovaValue = p && xnovaPrice != null ? (p.xnovaBalance ?? 0) * xnovaPrice : null;
-  const total = solValue != null || xnovaValue != null ? (solValue ?? 0) + (xnovaValue ?? 0) : null;
 
   return (
     <TerminalLayout>
@@ -60,17 +71,42 @@ function Portfolio() {
         <header className="panel px-4 py-4">
           <h1 className="text-lg font-semibold tracking-tight">PORTFOLIO</h1>
           <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-            Read-only wallet inspection over Solana RPC. XNOVA never asks for a seed phrase or private
-            key and cannot move your funds. Connect an EVM wallet (MetaMask, Crypto.com Onchain) from
-            the header, or inspect any Solana address below.
+            Live balances only — every number here is read from chain RPC and priced against live
+            market data. XNOVA never asks for a seed phrase or private key and cannot move funds.
           </p>
         </header>
 
-        <Panel title="SOLANA WALLET LOOKUP">
+        <Panel
+          title="CONNECTED ACCOUNT"
+          action={<span className="label-xs">{connected.address ? "LIVE" : "NOT CONNECTED"}</span>}
+        >
+          {connected.address && connected.chainId && config?.thirdwebClientId ? (
+            <ClientOnly fallback={<Loading label="Reading wallet" />}>
+              <Suspense fallback={<Loading label="Reading wallet" />}>
+                <EvmBalance
+                  clientId={config.thirdwebClientId}
+                  address={connected.address}
+                  chainId={connected.chainId}
+                  chainName={connected.chainName}
+                />
+              </Suspense>
+            </ClientOnly>
+          ) : (
+            <div className="flex items-center gap-3 py-4 text-[11px] text-muted-foreground">
+              <Wallet className="size-4" aria-hidden />
+              Connect MetaMask or Crypto.com Onchain from the header to stream your account balance
+              here. Solana holdings are inspected by address below.
+            </div>
+          )}
+        </Panel>
+
+        <Panel title="SOLANA WALLET">
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              setAddress(input.trim());
+              const next = input.trim();
+              setAddress(next);
+              if (next) saveSolanaAddress(next);
             }}
             className="flex flex-col gap-2 sm:flex-row"
           >
@@ -88,7 +124,7 @@ function Portfolio() {
               type="submit"
               className="num rounded-sm bg-primary px-4 py-2 text-[11px] uppercase tracking-widest text-primary-foreground"
             >
-              Load portfolio
+              Load balances
             </button>
           </form>
         </Panel>
@@ -114,16 +150,31 @@ function Portfolio() {
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <Stat label="Total value" value={formatUsd(total)} sub="SOL + XNOVA priced live" />
-                  <Stat label="SOL" value={formatNum(p?.solBalance ?? null)} sub={formatUsd(solValue)} />
-                  <Stat label="XNOVA" value={formatNum(p?.xnovaBalance ?? null)} sub={formatUsd(xnovaValue)} />
+                  <Stat
+                    label="Total value"
+                    value={formatUsd(p?.totalValueUsd ?? null)}
+                    sub={`${p?.pricedCount ?? 0} priced assets`}
+                  />
+                  <Stat
+                    label="SOL"
+                    value={formatNum(p?.solBalance ?? null)}
+                    sub={formatUsd(p?.solValueUsd ?? null)}
+                  />
+                  <Stat
+                    label="XNOVA"
+                    value={formatNum(p?.xnovaBalance ?? null)}
+                    sub={formatUsd(
+                      p?.tokens.find((t) => t.mint === XNOVA.tokenMint)?.valueUsd ?? null,
+                    )}
+                  />
                   <Stat label="SPL tokens" value={formatNum(p?.tokens.length ?? null)} />
                 </div>
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-border">
-                        {["Mint", "Amount", "Decimals"].map((h) => (
+                        {["Asset", "Amount", "Price", "Value", "Weight"].map((h) => (
                           <th key={h} className="label-xs px-2 py-1.5 font-normal">
                             {h}
                           </th>
@@ -131,28 +182,51 @@ function Portfolio() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(p?.tokens ?? []).slice(0, 40).map((t) => (
-                        <tr key={t.mint} className="border-b border-border/50 hover:bg-surface-2">
-                          <td className="num px-2 py-1.5 text-[11px]">
-                            <a
-                              href={`https://solscan.io/token/${t.mint}`}
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="hover:text-primary"
-                            >
-                              {t.mint === XNOVA.tokenMint ? "XNOVA" : shortAddress(t.mint, 6)}
-                            </a>
-                          </td>
-                          <td className="num px-2 py-1.5 text-[11px]">{formatNum(t.amount)}</td>
-                          <td className="num px-2 py-1.5 text-[11px] text-muted-foreground">{t.decimals}</td>
-                        </tr>
-                      ))}
+                      {(p?.tokens ?? []).slice(0, 50).map((t) => {
+                        const weight =
+                          p?.totalValueUsd && t.valueUsd != null && p.totalValueUsd > 0
+                            ? (t.valueUsd / p.totalValueUsd) * 100
+                            : null;
+                        const isXnova = t.mint === XNOVA.tokenMint;
+                        return (
+                          <tr key={t.mint} className="border-b border-border/50 hover:bg-surface-2">
+                            <td className="px-2 py-1.5">
+                              <a
+                                href={`https://solscan.io/token/${t.mint}`}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                className="flex items-center gap-2 hover:text-primary"
+                              >
+                                <BrandLogo
+                                  name={t.symbol ?? t.mint}
+                                  icon={t.icon}
+                                  className="size-5"
+                                />
+                                <span className="num text-[11px]">
+                                  {isXnova ? "XNOVA" : (t.symbol ?? shortAddress(t.mint, 5))}
+                                </span>
+                              </a>
+                            </td>
+                            <td className="num px-2 py-1.5 text-[11px]">{formatNum(t.amount)}</td>
+                            <td className="num px-2 py-1.5 text-[11px] text-muted-foreground">
+                              {t.priceUsd != null ? formatUsd(t.priceUsd, 6) : "—"}
+                            </td>
+                            <td className="num px-2 py-1.5 text-[11px]">
+                              {t.valueUsd != null ? formatUsd(t.valueUsd) : "—"}
+                            </td>
+                            <td className="num px-2 py-1.5 text-[11px] text-muted-foreground">
+                              {weight != null ? `${weight.toFixed(1)}%` : "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
+
                 <p className="text-[11px] text-muted-foreground">
-                  PnL is intentionally omitted: cost-basis history is not available from these data
-                  sources, and XNOVA does not display estimated numbers.
+                  Assets without a live market pair show “—” instead of an estimated price. PnL is
+                  omitted: cost-basis history is not available from these data sources.
                 </p>
               </div>
             )}

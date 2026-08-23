@@ -1,16 +1,43 @@
 import { createThirdwebClient } from "thirdweb";
-import { ConnectButton, ThirdwebProvider, darkTheme } from "thirdweb/react";
+import {
+  ConnectButton,
+  ThirdwebProvider,
+  darkTheme,
+  useActiveAccount,
+  useActiveWallet,
+  useActiveWalletChain,
+} from "thirdweb/react";
 import { createWallet, type Wallet } from "thirdweb/wallets";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+
+import { setConnectedWallet } from "@/lib/xnova/wallet-store";
 
 const WALLET_IDS = [
   "io.metamask",
-  "me.rainbow",
   "com.crypto.wallet",
+  "me.rainbow",
   "com.trustwallet.app",
   "org.uniswap",
   "com.okex.wallet",
 ] as const;
+
+/** Publishes the active Thirdweb account into the app-wide wallet store. */
+function AccountBridge() {
+  const account = useActiveAccount();
+  const chain = useActiveWalletChain();
+  const wallet = useActiveWallet();
+
+  useEffect(() => {
+    setConnectedWallet({
+      address: account?.address ?? null,
+      chainId: chain?.id ?? null,
+      chainName: chain?.name ?? null,
+      walletId: wallet?.id ?? null,
+    });
+  }, [account?.address, chain?.id, chain?.name, wallet?.id]);
+
+  return null;
+}
 
 export function ConnectInner({ clientId }: { clientId: string }) {
   const client = useMemo(() => createThirdwebClient({ clientId }), [clientId]);
@@ -21,6 +48,7 @@ export function ConnectInner({ clientId }: { clientId: string }) {
 
   return (
     <ThirdwebProvider>
+      <AccountBridge />
       <ConnectButton
         client={client}
         wallets={wallets}

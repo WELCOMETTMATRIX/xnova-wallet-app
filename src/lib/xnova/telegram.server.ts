@@ -1,18 +1,19 @@
 import { XNOVA, formatUsd, shortAddress, solscanTx } from "./config";
 import type { Trade } from "./types";
+import { telegramChatId, telegramToken } from "./env.server";
 
 export function telegramConfigured(): boolean {
-  return Boolean(process.env["TELEGRAM_BOT_TOKEN"] && process.env["TELEGRAM_CHAT_ID"]);
+  return Boolean(telegramToken() && telegramChatId());
 }
 
 function token(): string {
-  const t = process.env["TELEGRAM_BOT_TOKEN"];
+  const t = telegramToken();
   if (!t) throw new Error("Telegram bot token is not configured");
   return t;
 }
 
 export async function sendTelegram(text: string, chatId?: string): Promise<void> {
-  const chat = chatId ?? process.env["TELEGRAM_CHAT_ID"];
+  const chat = chatId ?? telegramChatId();
   if (!chat) throw new Error("Telegram chat id is not configured");
   const res = await fetch(`https://api.telegram.org/bot${token()}/sendMessage`, {
     method: "POST",

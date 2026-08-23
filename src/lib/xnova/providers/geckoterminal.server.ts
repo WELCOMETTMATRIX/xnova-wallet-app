@@ -73,7 +73,7 @@ export async function fetchCandles(
   aggregate: number,
   limit = 300,
 ): Promise<Candle[]> {
-  return cachedJson(`gt:ohlcv:${timeframe}:${aggregate}`, 45_000, async () => {
+  return cachedJson(`gt:ohlcv:${timeframe}:${aggregate}`, 90_000, async () => {
     const url = `${BASE}/networks/solana/pools/${XNOVA.primaryPair}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}&currency=usd`;
     const payload = await getJson<OhlcvResponse>(url);
     const list = payload.data?.attributes?.ohlcv_list ?? [];
@@ -108,7 +108,7 @@ interface GtTrade {
 
 /** Recent pool trades. Used for the trade tape and the whale tracker. */
 export async function fetchTrades(minUsd = 0): Promise<Trade[]> {
-  return cachedJson(`gt:trades:${minUsd}`, 30_000, async () => {
+  return cachedJson(`gt:trades:${minUsd}`, 60_000, async () => {
     const url = `${BASE}/networks/solana/pools/${XNOVA.primaryPair}/trades?trade_volume_in_usd_greater_than=${minUsd}`;
     const payload = await getJson<{ data?: GtTrade[] }>(url);
     return (payload.data ?? [])

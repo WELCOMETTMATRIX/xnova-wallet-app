@@ -1,3 +1,4 @@
+import { solscanKey } from "./env.server";
 import { XNOVA, formatNum, formatPct, formatUsd, shortAddress, solscanTx } from "./config";
 import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
 import { fetchTrades } from "./providers/geckoterminal.server";
@@ -138,7 +139,7 @@ async function command(cmd: string, chatId: string) {
         () => "DexScreener: online",
         () => "DexScreener: unavailable",
       );
-      const solscan = process.env["SOLSCAN_API_KEY"]
+      const solscan = solscanKey()
         ? await fetchTokenMeta().then(
             () => "Solscan: online",
             () => "Solscan: unavailable",

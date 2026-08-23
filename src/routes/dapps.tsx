@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, ExternalLink, Search, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { BrandLogo } from "@/components/xnova/BrandLogo";
 import { TerminalLayout } from "@/components/xnova/Layout";
 import { Panel } from "@/components/xnova/primitives";
 import { CATEGORIES, DAPPS, inspectUrl, type DappCategory } from "@/lib/xnova/dapps";
@@ -111,14 +112,7 @@ function Dapps() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <img
-                        src={`https://www.google.com/s2/favicons?sz=64&domain=${safety.host}`}
-                        alt={`${d.name} logo`}
-                        width={28}
-                        height={28}
-                        loading="lazy"
-                        className="size-7 rounded-sm border border-border bg-background object-contain p-1"
-                      />
+                      <BrandLogo name={d.name} url={d.url} />
                       <div>
                         <h2 className="text-sm font-medium">{d.name}</h2>
                         <span className="label-xs">{d.category}</span>

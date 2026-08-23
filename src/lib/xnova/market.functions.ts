@@ -4,11 +4,7 @@ import { z } from "zod";
 import { attempt } from "./result";
 import { fetchMarket } from "./providers/market.server";
 import { fetchCandles, fetchTrades } from "./providers/geckoterminal.server";
-import {
-  fetchTokenMeta,
-  fetchTopHolders,
-  fetchTransfers,
-} from "./providers/solscan.server";
+import { fetchHoldersResilient, fetchTokenMetaResilient, fetchTransfersResilient } from "./providers/onchain-resolve.server";
 
 export const getMarket = createServerFn({ method: "GET" }).handler(async () =>
   attempt("dexscreener", fetchMarket),
@@ -34,17 +30,17 @@ export const getTrades = createServerFn({ method: "GET" })
   .handler(async ({ data }) => attempt("geckoterminal", () => fetchTrades(data.minUsd)));
 
 export const getTokenMeta = createServerFn({ method: "GET" }).handler(async () =>
-  attempt("solscan", fetchTokenMeta),
+  attempt("token-meta", fetchTokenMetaResilient),
 );
 
 export const getHolders = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
     z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(input ?? {}),
   )
-  .handler(async ({ data }) => attempt("solscan", () => fetchTopHolders(data.limit)));
+  .handler(async ({ data }) => attempt("holders", () => fetchHoldersResilient(data.limit)));
 
 export const getTransfers = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
     z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(input ?? {}),
   )
-  .handler(async ({ data }) => attempt("solscan", () => fetchTransfers(data.limit)));
+  .handler(async ({ data }) => attempt("transfers", () => fetchTransfersResilient(data.limit)));

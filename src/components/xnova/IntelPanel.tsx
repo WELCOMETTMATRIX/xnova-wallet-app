@@ -57,7 +57,7 @@ export function TransfersPanel() {
         {isPending ? (
           <Loading label="Loading transfers" />
         ) : !data?.ok ? (
-          <Unavailable source="Solscan transfers" detail={data?.error} />
+          <Unavailable source="Transfer data" detail={data?.error} />
         ) : (
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-surface">
