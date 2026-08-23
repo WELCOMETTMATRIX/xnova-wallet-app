@@ -17,7 +17,7 @@ export async function solanaRpc<T>(method: string, params: unknown[]): Promise<T
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-        retries: 1,
+        retries: 2,
         timeoutMs: 12_000,
       });
       if (payload.error) throw new Error(payload.error.message ?? "Solana RPC error");
@@ -37,7 +37,7 @@ interface SupplyResult {
 
 /** Token supply + decimals from chain, symbol/name/icon from the live market pair. */
 export async function fetchChainTokenMeta(): Promise<TokenMeta> {
-  return cachedJson("chain:meta", 120_000, async () => {
+  return cachedJson("chain:meta", 600_000, async () => {
     const supply = await solanaRpc<SupplyResult>("getTokenSupply", [XNOVA.tokenMint]);
     let symbol: string | null = null;
     let name: string | null = null;
@@ -73,7 +73,7 @@ interface LargestResult {
 export async function fetchChainTopHolders(
   limit = 20,
 ): Promise<{ holders: Holder[]; total: number | null }> {
-  return cachedJson(`chain:holders:${limit}`, 120_000, async () => {
+  return cachedJson(`chain:holders:${limit}`, 600_000, async () => {
     const largest = await solanaRpc<LargestResult>("getTokenLargestAccounts", [XNOVA.tokenMint]);
     const accounts = (largest.value ?? []).slice(0, limit);
 
@@ -126,7 +126,7 @@ interface SigResult {
  * parsed token balance deltas. Only fully parsed transfers are returned.
  */
 export async function fetchChainTransfers(limit = 20): Promise<Transfer[]> {
-  return cachedJson(`chain:transfers:${limit}`, 45_000, async () => {
+  return cachedJson(`chain:transfers:${limit}`, 120_000, async () => {
     const sigs = await solanaRpc<SigResult[]>("getSignaturesForAddress", [
       XNOVA.primaryPair,
       { limit: Math.min(limit, 12) },
