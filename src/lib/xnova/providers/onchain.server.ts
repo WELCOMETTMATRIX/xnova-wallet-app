@@ -24,6 +24,7 @@ export async function solanaRpc<T>(method: string, params: unknown[]): Promise<T
       if (payload.result === undefined) throw new Error("Empty Solana RPC result");
       return payload.result;
     } catch (error) {
+      console.warn(`[xnova:rpc] ${method} failed on ${new URL(url).host}: ${(error as Error).message.slice(0, 120)}`);
       lastError = error;
     }
   }
