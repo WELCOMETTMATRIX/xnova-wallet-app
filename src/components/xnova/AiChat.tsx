@@ -61,7 +61,7 @@ export function AiChat() {
   return (
     <section className="panel relative overflow-hidden">
       <video
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60"
         src={bgVideo.url}
         autoPlay
         loop
@@ -70,7 +70,10 @@ export function AiChat() {
         preload="auto"
         aria-hidden
       />
-      <div className="pointer-events-none absolute inset-0 bg-background/70" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/70 via-background/55 to-background/80"
+        aria-hidden
+      />
 
       <div className="relative flex h-[70vh] min-h-[520px] flex-col">
         <header className="flex items-center justify-between border-b border-border/80 px-4 py-3 backdrop-blur">
