@@ -110,9 +110,19 @@ function Dapps() {
                   className="flex flex-col rounded-sm border border-border bg-surface-2/40 p-3"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h2 className="text-sm font-medium">{d.name}</h2>
-                      <span className="label-xs">{d.category}</span>
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={`https://www.google.com/s2/favicons?sz=64&domain=${safety.host}`}
+                        alt={`${d.name} logo`}
+                        width={28}
+                        height={28}
+                        loading="lazy"
+                        className="size-7 rounded-sm border border-border bg-background object-contain p-1"
+                      />
+                      <div>
+                        <h2 className="text-sm font-medium">{d.name}</h2>
+                        <span className="label-xs">{d.category}</span>
+                      </div>
                     </div>
                     {d.trending ? (
                       <span className="num rounded-sm border border-primary/50 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-primary">
