@@ -34,12 +34,17 @@ export function StakingZone() {
     >
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
         <div className="rounded-sm border border-primary/30 bg-primary/5 p-4">
-          <Lock className="size-4 text-primary" aria-hidden />
+          <div className="flex items-center justify-between gap-2">
+            <Lock className="size-4 text-primary" aria-hidden />
+            <span className="num rounded-sm border border-primary/50 bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-widest text-primary">
+              Coming soon
+            </span>
+          </div>
           <h3 className="mt-2 text-sm font-medium">XNOVA staking</h3>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            No XNOVA staking program is deployed on-chain yet, so no APY or rewards are shown here.
-            When a staking contract ships, this panel reads its live on-chain state — the terminal
-            never displays estimated or placeholder yields.
+            XNOVA staking is coming soon. No staking program is deployed on-chain yet, so no APY or
+            rewards are shown here. When the staking contract ships, this panel reads its live
+            on-chain state — the terminal never displays estimated or placeholder yields.
           </p>
           <a
             href={XNOVA.links.solscan}
