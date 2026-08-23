@@ -4,8 +4,18 @@ import { z } from "zod";
 import { attempt } from "./result";
 
 export const getAlertStatus = createServerFn({ method: "GET" }).handler(async () => {
-  const { alertState } = await import("./alerts.server");
-  return alertState();
+  try {
+    const { alertState } = await import("./alerts.server");
+    return alertState();
+  } catch (error) {
+    console.error(error);
+    return {
+      lastRunAt: 0,
+      sent: 0,
+      lastError: error instanceof Error ? error.message : "alert status unavailable",
+      telegramConfigured: false,
+    };
+  }
 });
 
 export const triggerAlertScan = createServerFn({ method: "POST" }).handler(async () => {
