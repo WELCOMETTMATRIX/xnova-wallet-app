@@ -12,7 +12,7 @@ export function HoldersPanel({ limit = 20 }: { limit?: number }) {
       title="TOP HOLDERS"
       dense
       className="h-[420px]"
-      action={<span className="label-xs">Solscan</span>}
+      action={<span className="label-xs">On-chain</span>}
     >
       <div className="h-full overflow-y-auto">
         {isPending ? (
