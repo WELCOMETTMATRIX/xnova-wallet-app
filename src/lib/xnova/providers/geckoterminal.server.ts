@@ -28,7 +28,7 @@ interface GtPool {
 
 /** Market snapshot from the GeckoTerminal pool endpoint (fallback provider). */
 export async function fetchPoolMarket(): Promise<MarketSnapshot> {
-  return cachedJson("gt:pool", 15_000, async () => {
+  return cachedJson("gt:pool", 30_000, async () => {
     const payload = await getJson<{ data?: GtPool }>(
       `${BASE}/networks/solana/pools/${XNOVA.primaryPair}`,
     );
@@ -73,7 +73,7 @@ export async function fetchCandles(
   aggregate: number,
   limit = 300,
 ): Promise<Candle[]> {
-  return cachedJson(`gt:ohlcv:${timeframe}:${aggregate}`, 20_000, async () => {
+  return cachedJson(`gt:ohlcv:${timeframe}:${aggregate}`, 45_000, async () => {
     const url = `${BASE}/networks/solana/pools/${XNOVA.primaryPair}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}&currency=usd`;
     const payload = await getJson<OhlcvResponse>(url);
     const list = payload.data?.attributes?.ohlcv_list ?? [];
@@ -108,7 +108,7 @@ interface GtTrade {
 
 /** Recent pool trades. Used for the trade tape and the whale tracker. */
 export async function fetchTrades(minUsd = 0): Promise<Trade[]> {
-  return cachedJson(`gt:trades:${minUsd}`, 15_000, async () => {
+  return cachedJson(`gt:trades:${minUsd}`, 30_000, async () => {
     const url = `${BASE}/networks/solana/pools/${XNOVA.primaryPair}/trades?trade_volume_in_usd_greater_than=${minUsd}`;
     const payload = await getJson<{ data?: GtTrade[] }>(url);
     return (payload.data ?? [])

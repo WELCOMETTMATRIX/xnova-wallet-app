@@ -26,7 +26,7 @@ const num = (v: unknown): number | null => {
 
 /** Live market data from DexScreener (public API, no credentials required). */
 export async function fetchMarketSnapshot(): Promise<MarketSnapshot> {
-  return cachedJson("ds:market", 15_000, async () => {
+  return cachedJson("ds:market", 60_000, async () => {
     const payload = await getJson<{ pairs: DsPair[] | null }>(
       `https://api.dexscreener.com/latest/dex/tokens/${XNOVA.tokenMint}`,
     );
