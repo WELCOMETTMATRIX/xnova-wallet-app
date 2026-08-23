@@ -84,10 +84,9 @@ export async function fetchChainTopHolders(
       supply = null;
     }
 
-    const owners: string[] = [];
-    for (const a of accounts) {
-      owners.push(
-        await (async () => {
+    // Resolve owners in parallel — sequential lookups exceeded the request budget.
+    const owners: string[] = await Promise.all(
+      accounts.map(async (a) => {
         try {
           const info = await solanaRpc<{
             value: { data: { parsed: { info: { owner?: string } } } } | null;
@@ -96,9 +95,9 @@ export async function fetchChainTopHolders(
         } catch {
           return a.address;
         }
-        })(),
-      );
-    }
+      }),
+    );
+
 
     const holders: Holder[] = accounts.map((a, i) => {
       const amount = a.uiAmount ?? Number(a.amount) / 10 ** a.decimals;
