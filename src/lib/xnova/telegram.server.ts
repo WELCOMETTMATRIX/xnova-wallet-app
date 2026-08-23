@@ -1,23 +1,36 @@
 import { XNOVA, formatUsd, shortAddress, solscanTx } from "./config";
 import type { Trade } from "./types";
-import { telegramChatId, telegramToken } from "./env.server";
+import { lovableApiKey, telegramApiKey, telegramChatId } from "./env.server";
+
+const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
 
 export function telegramConfigured(): boolean {
-  return Boolean(telegramToken() && telegramChatId());
+  return Boolean(telegramApiKey() && telegramChatId() && lovableApiKey());
 }
 
-function token(): string {
-  const t = telegramToken();
-  if (!t) throw new Error("Telegram bot token is not configured");
-  return t;
+function apiKey(): string {
+  const key = telegramApiKey();
+  if (!key) throw new Error("Telegram API key is not configured");
+  return key;
+}
+
+function lovableKey(): string {
+  const key = lovableApiKey();
+  if (!key) throw new Error("LOVABLE_API_KEY is not configured");
+  return key;
 }
 
 export async function sendTelegram(text: string, chatId?: string): Promise<void> {
   const chat = chatId ?? telegramChatId();
   if (!chat) throw new Error("Telegram chat id is not configured");
-  const res = await fetch(`https://api.telegram.org/bot${token()}/sendMessage`, {
+
+  const res = await fetch(`${GATEWAY_URL}/sendMessage`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${lovableKey()}`,
+      "X-Connection-Api-Key": apiKey(),
+    },
     body: JSON.stringify({
       chat_id: chat,
       text,
@@ -25,9 +38,10 @@ export async function sendTelegram(text: string, chatId?: string): Promise<void>
       disable_web_page_preview: true,
     }),
   });
+
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`Telegram API ${res.status}: ${body.slice(0, 200)}`);
+    throw new Error(`Telegram gateway ${res.status}: ${body.slice(0, 200)}`);
   }
   const payload = (await res.json()) as { ok?: boolean; description?: string };
   if (payload.ok === false) throw new Error(`Telegram error: ${payload.description ?? "unknown"}`);
