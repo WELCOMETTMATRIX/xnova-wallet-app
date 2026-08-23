@@ -1,6 +1,7 @@
 import { ExternalLink, Lock } from "lucide-react";
 
 import { XNOVA } from "@/lib/xnova/config";
+import { BrandLogo } from "./BrandLogo";
 import { Panel } from "./primitives";
 
 const VENUES = [
@@ -64,8 +65,11 @@ export function StakingZone() {
               rel="noopener noreferrer nofollow"
               className="rounded-sm border border-border bg-surface-2/40 p-3 transition-colors hover:border-primary/60"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{v.name}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <BrandLogo name={v.name} url={v.url} className="size-6" />
+                  <span className="text-sm font-medium">{v.name}</span>
+                </span>
                 <ExternalLink className="size-3 text-muted-foreground" aria-hidden />
               </div>
               <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{v.body}</p>

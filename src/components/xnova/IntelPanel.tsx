@@ -23,7 +23,7 @@ export function IntelPanel() {
   return (
     <Panel title="XNOVA INTELLIGENCE">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Supply" value={formatNum(md?.supply ?? null)} sub={md ? `${md.decimals ?? "—"} decimals` : "Solscan"} />
+        <Stat label="Supply" value={formatNum(md?.supply ?? null)} sub={md ? `${md.decimals ?? "—"} decimals` : "On-chain"} />
         <Stat label="Holders" value={formatNum(md?.holders ?? null)} />
         <Stat
           label="Top 10 concentration"
@@ -52,12 +52,12 @@ export function IntelPanel() {
 export function TransfersPanel() {
   const { data, isPending } = useQuery(transfersQuery(20));
   return (
-    <Panel title="TOKEN TRANSFERS" dense className="h-[420px]" action={<span className="label-xs">Solscan</span>}>
+    <Panel title="TOKEN TRANSFERS" dense className="h-[420px]" action={<span className="label-xs">On-chain</span>}>
       <div className="h-full overflow-y-auto">
         {isPending ? (
           <Loading label="Loading transfers" />
         ) : !data?.ok ? (
-          <Unavailable source="Solscan transfers" detail={data?.error} />
+          <Unavailable source="Transfer data" detail={data?.error} />
         ) : (
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-surface">

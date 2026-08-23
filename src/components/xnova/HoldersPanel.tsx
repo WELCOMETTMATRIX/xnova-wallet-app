@@ -12,13 +12,13 @@ export function HoldersPanel({ limit = 20 }: { limit?: number }) {
       title="TOP HOLDERS"
       dense
       className="h-[420px]"
-      action={<span className="label-xs">Solscan</span>}
+      action={<span className="label-xs">On-chain</span>}
     >
       <div className="h-full overflow-y-auto">
         {isPending ? (
           <Loading label="Loading holders" />
         ) : !data?.ok ? (
-          <Unavailable source="Solscan holders" detail={data?.error} />
+          <Unavailable source="Holder data" detail={data?.error} />
         ) : (
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-surface">

@@ -51,10 +51,9 @@ export async function cachedJson<T>(
   return request;
 }
 
-export async function getJson<T>(
-  url: string,
-  init?: RequestInit & { timeoutMs?: number },
-): Promise<T> {
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function once<T>(url: string, init?: RequestInit & { timeoutMs?: number }): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), init?.timeoutMs ?? 10_000);
   try {
@@ -65,10 +64,33 @@ export async function getJson<T>(
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} ${res.statusText} ${body.slice(0, 200)}`);
+      const error = new Error(`HTTP ${res.status} ${res.statusText} ${body.slice(0, 200)}`);
+      (error as Error & { status?: number }).status = res.status;
+      throw error;
     }
     return (await res.json()) as T;
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** JSON GET with bounded retry/backoff on rate limits and transient upstream errors. */
+export async function getJson<T>(
+  url: string,
+  init?: RequestInit & { timeoutMs?: number; retries?: number },
+): Promise<T> {
+  const retries = init?.retries ?? 2;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await once<T>(url, init);
+    } catch (error) {
+      lastError = error;
+      const status = (error as Error & { status?: number }).status;
+      const retryable = status === 429 || status === undefined || (status >= 500 && status < 600);
+      if (!retryable || attempt === retries) break;
+      await sleep(400 * 2 ** attempt + Math.random() * 200);
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Request failed");
 }

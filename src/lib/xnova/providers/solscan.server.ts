@@ -1,11 +1,12 @@
 import { XNOVA } from "../config";
 import type { Holder, TokenMeta, Transfer } from "../types";
 import { cachedJson, getJson } from "./http.server";
+import { solscanKey } from "../env.server";
 
 const PRO = "https://pro-api.solscan.io/v2.0";
 
 function apiKey(): string {
-  const key = process.env["SOLSCAN_API_KEY"];
+  const key = solscanKey();
   if (!key) throw new Error("Solscan API key is not configured");
   return key;
 }
@@ -115,5 +116,5 @@ export async function fetchTransfers(limit = 20): Promise<Transfer[]> {
 }
 
 export function solscanConfigured(): boolean {
-  return Boolean(process.env["SOLSCAN_API_KEY"]);
+  return Boolean(solscanKey());
 }
