@@ -19,8 +19,11 @@ export const getAlertStatus = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const triggerAlertScan = createServerFn({ method: "POST" }).handler(async () => {
-  const { runAlertScan } = await import("./alerts.server");
-  return attempt("alerts", runAlertScan);
+  const { maybeRunAlertScan, alertState } = await import("./alerts.server");
+  return attempt("alerts", async () => {
+    await maybeRunAlertScan();
+    return alertState();
+  });
 });
 
 export const sendTestAlert = createServerFn({ method: "POST" })
@@ -30,7 +33,12 @@ export const sendTestAlert = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { sendTelegram, formatPriceAlert } = await import("./telegram.server");
     return attempt("telegram", async () => {
-      await sendTelegram(formatPriceAlert("TEST NOTIFICATION", data.message));
+      await sendTelegram(
+        formatPriceAlert(
+          "ENGINE NOTICE",
+          `${data.message}\n\nAlerts remain automatic: every $1+ transaction, no maximum cap.`,
+        ),
+      );
       return true;
     });
   });

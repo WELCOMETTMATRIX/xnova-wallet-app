@@ -129,16 +129,20 @@ function Alerts() {
               ))}
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground">
-              Thresholds are configured server-side via{" "}
-              <span className="num">XNOVA_ALERT_MIN_TRADE_USD</span>,{" "}
-              <span className="num">XNOVA_ALERT_WHALE_USD</span> and{" "}
-              <span className="num">XNOVA_ALERT_PRICE_PCT</span>.
+              Transaction alerts are locked to a $1 minimum with no maximum cap. Whale and price
+              move logic stays server-side via <span className="num">XNOVA_ALERT_WHALE_USD</span>
+              and <span className="num">XNOVA_ALERT_PRICE_PCT</span>. Users cannot edit alert
+              routing or thresholds from the app.
             </p>
           </Panel>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="BOT COMMANDS">
+            <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+              Commands are read-only. /watch and /unwatch explain that alerts are automatic instead
+              of changing alert subscriptions.
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {COMMANDS.map((c) => (
                 <span

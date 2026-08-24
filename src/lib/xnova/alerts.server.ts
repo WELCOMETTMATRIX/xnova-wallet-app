@@ -50,7 +50,10 @@ function thresholds(): AlertThresholds {
     return Number.isFinite(n) && n > 0 ? n : fallback;
   };
   return {
-    minTradeUsd: env("XNOVA_ALERT_MIN_TRADE_USD", DEFAULT_THRESHOLDS.minTradeUsd),
+    // Always track every transaction from $1 upward. This is intentionally not
+    // user-configurable and has no maximum cap, so small buys / sells are never
+    // hidden by an environment override or UI control.
+    minTradeUsd: DEFAULT_THRESHOLDS.minTradeUsd,
     whaleUsd: env("XNOVA_ALERT_WHALE_USD", DEFAULT_THRESHOLDS.whaleUsd),
     pricePct: env("XNOVA_ALERT_PRICE_PCT", DEFAULT_THRESHOLDS.pricePct),
   };
@@ -77,9 +80,9 @@ export async function runAlertScan(): Promise<{
   let scanned = 0;
 
   try {
-    let trades = await fetchTrades(cfg.minTradeUsd).catch(() => [] as Awaited<
-      ReturnType<typeof fetchTrades>
-    >);
+    let trades = await fetchTrades(cfg.minTradeUsd).catch(
+      () => [] as Awaited<ReturnType<typeof fetchTrades>>,
+    );
     // Pool indexer empty or rate limited: rebuild swaps straight from chain.
     if (trades.length === 0) {
       const { fetchChainTrades } = await import("./providers/chain-trades.server");
@@ -93,9 +96,11 @@ export async function runAlertScan(): Promise<{
       .slice(-25);
 
     // First run only primes the cursor so history is not replayed into chat.
+    // GeckoTerminal returns newest first, so the cursor must be the newest
+    // timestamp; otherwise older trades could block new $1+ transactions.
     if (state.lastTradeTs === 0) {
       for (const t of trades) state.seen.add(t.id);
-      state.lastTradeTs = trades[0]?.timestamp ?? Date.now();
+      state.lastTradeTs = Math.max(0, ...trades.map((t) => t.timestamp));
     } else {
       for (const trade of fresh) {
         await sendTelegram(formatTradeAlert(trade, trade.valueUsd >= cfg.whaleUsd));
