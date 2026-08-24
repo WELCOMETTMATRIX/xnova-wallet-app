@@ -19,21 +19,18 @@ export interface WalletPortfolio {
   solPriceUsd: number | null;
   solValueUsd: number | null;
   xnovaBalance: number | null;
+  xnovaValueUsd: number | null;
   tokensValueUsd: number | null;
   totalValueUsd: number | null;
   pricedCount: number;
   tokens: PortfolioToken[];
-  // Tokens exist but were not priced because pricing is slow / unavailable.
-  unpricedCount: number;
-  // True if prices were cut short to meet the response budget.
-  partial: boolean;
-  // Human-readable timing note.
-  source: string;
 }
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 const LEGACY_TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-const TOKEN_2022_PROGRAM = "TokenzQdBNbBqPp7Z3ha7pJ9Zf3G5m1V8Zz";
+// XNOVA and most pump.fun era mints are Token-2022 accounts; the legacy program
+// query alone returns none of them, which is why XNOVA read as 0.
+const TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 
 interface DsToken {
   chainId?: string;
@@ -46,27 +43,22 @@ interface DsToken {
 /** Live USD prices for a batch of SPL mints (DexScreener, public API). */
 async function fetchTokenPrices(
   mints: string[],
-  timeoutMs: number,
 ): Promise<Map<string, { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }>> {
   const out = new Map<
     string,
     { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }
   >();
-  const unique = [...new Set(mints)].slice(0, 40);
+  const unique = [...new Set(mints)].slice(0, 60);
   const chunks: string[][] = [];
-  for (let i = 0; i < unique.length; i += 20) chunks.push(unique.slice(i, i + 20));
-
-  const deadline = Date.now() + timeoutMs;
+  for (let i = 0; i < unique.length; i += 30) chunks.push(unique.slice(i, i + 30));
 
   await Promise.all(
     chunks.map(async (chunk) => {
-      if (Date.now() > deadline) return;
       const key = `ds:prices:${chunk.join(",")}`;
       try {
         const payload = await cachedJson(key, 60_000, () =>
           getJson<{ pairs?: DsToken[] | null }>(
             `https://api.dexscreener.com/latest/dex/tokens/${chunk.join(",")}`,
-            { timeoutMs: 7_000, retries: 1 },
           ),
         );
         for (const pair of payload.pairs ?? []) {
@@ -90,68 +82,85 @@ async function fetchTokenPrices(
   return out;
 }
 
+/** Last-resort XNOVA price when DexScreener has no indexed pair yet. */
+async function fetchXnovaPriceFallback(): Promise<number | null> {
+  try {
+    const payload = await cachedJson(`jup:price:${XNOVA.tokenMint}`, 60_000, () =>
+      getJson<{ data?: Record<string, { price?: number | string }> }>(
+        `https://lite-api.jup.ag/price/v2?ids=${XNOVA.tokenMint}`,
+        { timeoutMs: 7_000, retries: 1 },
+      ),
+    );
+    const price = Number(payload.data?.[XNOVA.tokenMint]?.price ?? NaN);
+    return Number.isFinite(price) && price > 0 ? price : null;
+  } catch {
+    return null;
+  }
+}
+
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 export function isSolanaAddress(address: string): boolean {
   return BASE58.test(address);
 }
 
-interface TokenAccount {
-  mint: string;
-  amount: number;
-  decimals: number;
-  programId: string;
+interface ParsedAccountsResult {
+  value: {
+    account: {
+      data: {
+        parsed: {
+          info: {
+            mint: string;
+            tokenAmount: { amount: string; decimals: number; uiAmount: number | null };
+          };
+        };
+      };
+    };
+  }[];
 }
 
-function parseTokenAccounts(
-  programId: string,
-  value: { account: { data: { parsed: { info: { mint: string; tokenAmount: { amount: string; decimals: number; uiAmount: number | null } } } } } }[];
-} {
-  return (value ?? []).map((a) => a.account.data.parsed.info).map((i) => ({
-    mint: i.mint,
-    amount: i.tokenAmount.uiAmount ?? 0,
-    decimals: i.tokenAmount.decimals,
-    programId,
-  }));
+function parseAccounts(result: ParsedAccountsResult | null) {
+  return (result?.value ?? []).map((a) => {
+    const info = a.account.data.parsed.info;
+    return {
+      mint: info.mint,
+      amount: info.tokenAmount.uiAmount ?? 0,
+      decimals: info.tokenAmount.decimals,
+    };
+  });
 }
 
 export async function fetchWalletPortfolio(address: string): Promise<WalletPortfolio> {
   if (!isSolanaAddress(address)) throw new Error("Invalid Solana wallet address");
 
-  const BUDGET_MS = 12_000;
-  const deadline = Date.now() + BUDGET_MS;
-  const balancePromise = rpc<{ value: number }>("getBalance", [address]);
-
-  const accountsPromise = Promise.all([
-    rpc<{
-      value: { account: { data: { parsed: { info: { mint: string; tokenAmount: { amount: string; decimals: number; uiAmount: number | null } } } } } }[];
-    }>("getTokenAccountsByOwner", [
+  const [lamports, legacy, token2022] = await Promise.all([
+    rpc<{ value: number }>("getBalance", [address]),
+    rpc<ParsedAccountsResult>("getTokenAccountsByOwner", [
       address,
       { programId: LEGACY_TOKEN_PROGRAM },
       { encoding: "jsonParsed" },
-    ]),
-    rpc<{
-      value: { account: { data: { parsed: { info: { mint: string; tokenAmount: { amount: string; decimals: number; uiAmount: number | null } } } } } }[];
-    }>("getTokenAccountsByOwner", [
+    ]).catch(() => null),
+    // Token-2022 holdings (XNOVA lives here).
+    rpc<ParsedAccountsResult>("getTokenAccountsByOwner", [
       address,
       { programId: TOKEN_2022_PROGRAM },
       { encoding: "jsonParsed" },
-    ]),
+    ]).catch(() => null),
   ]);
 
-  const [lamports, [legacy, token2022]] = await Promise.all([balancePromise, accountsPromise]);
-
-  const raw: TokenAccount[] = parseTokenAccounts(LEGACY_TOKEN_PROGRAM, legacy.value)
-    .concat(parseTokenAccounts(TOKEN_2022_PROGRAM, token2022.value))
+  const raw = [...parseAccounts(legacy), ...parseAccounts(token2022)]
     .filter((t) => t.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 
-  const xnova = raw.find((t) => t.mint === XNOVA.tokenMint);
-  const topByAmount = raw.slice(0, 20);
-  const priority = [XNOVA.tokenMint, SOL_MINT, ...topByAmount.map((t) => t.mint)];
-  const priceBudget = Math.max(2_000, deadline - Date.now() - 1_500);
-  const prices = await fetchTokenPrices(priority, priceBudget);
-  const partial = Date.now() > deadline - 500;
+  const prices = await fetchTokenPrices([SOL_MINT, XNOVA.tokenMint, ...raw.map((t) => t.mint)]);
+
+  // DexScreener sometimes has no indexed pair for a fresh pump.fun mint.
+  if (!prices.has(XNOVA.tokenMint) && raw.some((t) => t.mint === XNOVA.tokenMint)) {
+    const fallback = await fetchXnovaPriceFallback();
+    if (fallback != null) {
+      prices.set(XNOVA.tokenMint, { priceUsd: fallback, symbol: "XNOVA", name: "XNOVA", icon: null });
+    }
+  }
 
   const tokens: PortfolioToken[] = raw.map((t) => {
     const meta = prices.get(t.mint);
@@ -172,21 +181,20 @@ export async function fetchWalletPortfolio(address: string): Promise<WalletPortf
   const solValueUsd = solPriceUsd != null ? solBalance * solPriceUsd : null;
   const priced = tokens.filter((t) => t.valueUsd != null);
   const tokensValueUsd = priced.length > 0 ? priced.reduce((s, t) => s + (t.valueUsd ?? 0), 0) : null;
+  const xnovaToken = tokens.find((t) => t.mint === XNOVA.tokenMint);
 
   return {
     address,
     solBalance,
     solPriceUsd,
     solValueUsd,
-    xnovaBalance: xnova?.amount ?? 0,
+    xnovaBalance: xnovaToken?.amount ?? 0,
+    xnovaValueUsd: xnovaToken?.valueUsd ?? null,
     tokensValueUsd,
     totalValueUsd:
       solValueUsd != null || tokensValueUsd != null ? (solValueUsd ?? 0) + (tokensValueUsd ?? 0) : null,
     pricedCount: priced.length,
-    unpricedCount: tokens.length - priced.length,
     tokens,
-    partial,
-    source: partial ? "Solana RPC + partial pricing" : "Solana RPC + DexScreener",
   };
 }
 
