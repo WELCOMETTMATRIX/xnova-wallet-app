@@ -85,10 +85,12 @@ export function ConnectInner() {
     setConnecting(wallet.name);
     setError(null);
     try {
-      const connect = wallet.features[StandardConnect].connect as unknown as () => Promise<{
-        accounts: Array<{ address: string; chains: string[] }>;
-      }>;
-      const result = await connect();
+      const feature = wallet.features[StandardConnect] as {
+        version: string;
+        connect: (input?: { silent?: boolean }) => Promise<{ accounts: readonly WalletAccount[] }>;
+      };
+      const result = await feature.connect();
+      const account = result.accounts.find((candidate) =>
       const account = result.accounts.find((candidate) =>
         candidate.chains.some((chain: string) => chain.startsWith("solana:")),
       );
