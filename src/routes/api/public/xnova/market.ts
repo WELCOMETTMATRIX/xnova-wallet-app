@@ -13,10 +13,7 @@ export const Route = createFileRoute("/api/public/xnova/market")({
           const market = await fetchMarket();
           return Response.json({ ok: true, market });
         } catch (error) {
-          return Response.json(
-            { ok: false, error: (error as Error).message },
-            { status: 503 },
-          );
+          return Response.json({ ok: false, error: (error as Error).message }, { status: 503 });
         }
       },
     },

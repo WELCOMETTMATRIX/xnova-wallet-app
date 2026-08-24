@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bell, LineChart, ShieldCheck, Waves } from "lucide-react";
 
 import { HeroCanvas } from "@/components/xnova/HeroCanvas";
-import { TerminalLayout } from "@/components/xnova/Layout";
+import { TerminalLayout, TrustBadges } from "@/components/xnova/Layout";
 import { TokenHeader, ExternalBtn } from "@/components/xnova/TokenHeader";
 import { PriceChart } from "@/components/xnova/PriceChart";
 import { TradeTape } from "@/components/xnova/TradeTape";
@@ -52,6 +52,9 @@ function Hero() {
             automated Telegram notifications for every buy and sell. Real data only — never
             simulated.
           </p>
+          <div className="mt-6">
+            <TrustBadges />
+          </div>
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <Link
               to="/markets"
@@ -67,10 +70,26 @@ function Hero() {
 
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: LineChart, title: "Live market", body: "Candles, volume and depth from the primary XNOVA pool." },
-            { icon: Waves, title: "Whale radar", body: "Large buys, sells and transfers with explorer links." },
-            { icon: Bell, title: "Telegram alerts", body: "Every qualifying transaction pushed to chat automatically." },
-            { icon: ShieldCheck, title: "Non-custodial", body: "No seed phrases, no key storage. Signing stays in your wallet." },
+            {
+              icon: LineChart,
+              title: "Live market",
+              body: "Candles, volume and depth from the primary XNOVA pool.",
+            },
+            {
+              icon: Waves,
+              title: "Whale radar",
+              body: "Large buys, sells and transfers with explorer links.",
+            },
+            {
+              icon: Bell,
+              title: "Telegram alerts",
+              body: "Every qualifying transaction pushed to chat automatically.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Non-custodial",
+              body: "No seed phrases, no key storage. Signing stays in your wallet.",
+            },
           ].map((f) => (
             <div key={f.title} className="panel bg-background/60 p-3 backdrop-blur">
               <f.icon className="size-4 text-primary" aria-hidden />

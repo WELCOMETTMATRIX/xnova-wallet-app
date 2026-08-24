@@ -29,10 +29,7 @@ const VENUES = [
 
 export function StakingZone() {
   return (
-    <Panel
-      title="STAKING ZONE"
-      action={<span className="label-xs">Solana Mainnet</span>}
-    >
+    <Panel title="STAKING ZONE" action={<span className="label-xs">Solana Mainnet</span>}>
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
         <div className="rounded-sm border border-primary/30 bg-primary/5 p-4">
           <div className="flex items-center justify-between gap-2">

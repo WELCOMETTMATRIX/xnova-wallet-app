@@ -32,9 +32,7 @@ export async function fetchMarketSnapshot(): Promise<MarketSnapshot> {
     );
     const pairs = payload.pairs ?? [];
     if (pairs.length === 0) throw new Error("No DexScreener pairs for token");
-    const sorted = [...pairs].sort(
-      (a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0),
-    );
+    const sorted = [...pairs].sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0));
     const pair: DsPair =
       pairs.find((p) => p.pairAddress === XNOVA.primaryPair) ?? sorted[0] ?? pairs[0]!;
 

@@ -11,12 +11,10 @@ export const XNOVA = {
   primaryPair: "6XwPJSsCvHpMaiGZstCbm95RmBMQMZpErRYSXfsPyNhT",
   website: "https://xnovasolanax.vercel.app/",
   links: {
-    dexscreener:
-      "https://dexscreener.com/solana/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump",
+    dexscreener: "https://dexscreener.com/solana/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump",
     pumpfun:
       "https://pump.fun/coin/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump?clip=20260822_060828%3A2485098_20260822_060800",
-    solscan:
-      "https://solscan.io/token/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump",
+    solscan: "https://solscan.io/token/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump",
     geckoterminal:
       "https://www.geckoterminal.com/solana/pools/6XwPJSsCvHpMaiGZstCbm95RmBMQMZpErRYSXfsPyNhT",
     twitter: "https://x.com/XNOVASOLANA",

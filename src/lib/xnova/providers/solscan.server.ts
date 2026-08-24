@@ -29,10 +29,9 @@ interface MetaResponse {
 
 export async function fetchTokenMeta(): Promise<TokenMeta> {
   return cachedJson("solscan:meta", 60_000, async () => {
-    const payload = await getJson<MetaResponse>(
-      `${PRO}/token/meta?address=${XNOVA.tokenMint}`,
-      { headers: headers() },
-    );
+    const payload = await getJson<MetaResponse>(`${PRO}/token/meta?address=${XNOVA.tokenMint}`, {
+      headers: headers(),
+    });
     const d = payload.data ?? {};
     const decimals = typeof d.decimals === "number" ? d.decimals : null;
     const rawSupply = d.supply == null ? null : Number(d.supply);
@@ -56,11 +55,19 @@ export async function fetchTokenMeta(): Promise<TokenMeta> {
 interface HoldersResponse {
   data?: {
     total?: number;
-    items?: { address?: string; owner?: string; amount?: number; decimals?: number; rank?: number }[];
+    items?: {
+      address?: string;
+      owner?: string;
+      amount?: number;
+      decimals?: number;
+      rank?: number;
+    }[];
   };
 }
 
-export async function fetchTopHolders(limit = 20): Promise<{ holders: Holder[]; total: number | null }> {
+export async function fetchTopHolders(
+  limit = 20,
+): Promise<{ holders: Holder[]; total: number | null }> {
   return cachedJson(`solscan:holders:${limit}`, 60_000, async () => {
     const payload = await getJson<HoldersResponse>(
       `${PRO}/token/holders?address=${XNOVA.tokenMint}&page=1&page_size=${limit}`,

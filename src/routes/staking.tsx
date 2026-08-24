@@ -16,7 +16,8 @@ export const Route = createFileRoute("/staking")({
       { property: "og:title", content: "XNOVA Staking Zone" },
       {
         property: "og:description",
-        content: "Staking status for XNOVA plus liquid staking and native delegation options on Solana.",
+        content:
+          "Staking status for XNOVA plus liquid staking and native delegation options on Solana.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -71,15 +71,31 @@ export function TokenHeader() {
           label="Price"
           value={formatUsd(m?.priceUsd, 8)}
           tone={h24 == null ? "default" : h24 >= 0 ? "bull" : "bear"}
-          sub={m?.priceNative != null ? `${m.priceNative.toPrecision(4)} ${m.quoteSymbol ?? "SOL"}` : undefined}
+          sub={
+            m?.priceNative != null
+              ? `${m.priceNative.toPrecision(4)} ${m.quoteSymbol ?? "SOL"}`
+              : undefined
+          }
         />
         <Stat
           label="24h"
-          value={<span className={cn(h24 != null && (h24 >= 0 ? "text-bull" : "text-bear"))}>{formatPct(h24)}</span>}
+          value={
+            <span className={cn(h24 != null && (h24 >= 0 ? "text-bull" : "text-bear"))}>
+              {formatPct(h24)}
+            </span>
+          }
           sub={`1h ${formatPct(m?.change.h1 ?? null)}`}
         />
-        <Stat label="Market cap" value={formatUsd(m?.marketCap ?? null)} sub={`FDV ${formatUsd(m?.fdv ?? null)}`} />
-        <Stat label="Liquidity" value={formatUsd(m?.liquidityUsd ?? null)} sub={m?.dexId ?? undefined} />
+        <Stat
+          label="Market cap"
+          value={formatUsd(m?.marketCap ?? null)}
+          sub={`FDV ${formatUsd(m?.fdv ?? null)}`}
+        />
+        <Stat
+          label="Liquidity"
+          value={formatUsd(m?.liquidityUsd ?? null)}
+          sub={m?.dexId ?? undefined}
+        />
         <Stat
           label="24h volume"
           value={formatUsd(m?.volume24h ?? null)}
@@ -90,7 +106,11 @@ export function TokenHeader() {
           value={meta?.ok ? formatNum(meta.data.holders) : "—"}
           sub={meta?.ok ? `Supply ${formatNum(meta.data.supply)}` : "Solscan"}
         />
-        <Stat label="Pair" value={shortAddress(XNOVA.primaryPair, 5)} sub={m?.quoteSymbol ? `XNOVA / ${m.quoteSymbol}` : "Primary pool"} />
+        <Stat
+          label="Pair"
+          value={shortAddress(XNOVA.primaryPair, 5)}
+          sub={m?.quoteSymbol ? `XNOVA / ${m.quoteSymbol}` : "Primary pool"}
+        />
       </div>
     </div>
   );

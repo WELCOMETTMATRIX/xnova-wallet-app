@@ -49,11 +49,20 @@ export function WhalePanel({ threshold = 2500 }: { threshold?: number }) {
                         buy ? "bg-bull/10 text-bull" : "bg-bear/10 text-bear",
                       )}
                     >
-                      {buy ? <ArrowUpRight className="size-4" /> : <ArrowDownRight className="size-4" />}
+                      {buy ? (
+                        <ArrowUpRight className="size-4" />
+                      ) : (
+                        <ArrowDownRight className="size-4" />
+                      )}
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className={cn("num text-[11px] uppercase tracking-widest", buy ? "text-bull" : "text-bear")}>
+                        <span
+                          className={cn(
+                            "num text-[11px] uppercase tracking-widest",
+                            buy ? "text-bull" : "text-bear",
+                          )}
+                        >
                           Whale {t.kind}
                         </span>
                         <span className="num text-sm font-medium">{formatUsd(t.valueUsd)}</span>

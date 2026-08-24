@@ -82,7 +82,11 @@ function Portfolio() {
         >
           {connected.address ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Stat label="Account" value={shortAddress(connected.address, 6)} sub={connected.walletName ?? "Solana wallet"} />
+              <Stat
+                label="Account"
+                value={shortAddress(connected.address, 6)}
+                sub={connected.walletName ?? "Solana wallet"}
+              />
               <Stat label="Network" value="Solana" sub="Mainnet" />
               <Stat label="Portfolio" value="Synced" sub="Balances shown below" />
             </div>

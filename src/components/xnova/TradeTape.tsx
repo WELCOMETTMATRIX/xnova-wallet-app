@@ -40,13 +40,24 @@ export function TradeTape({
             <tbody>
               {data.data.slice(0, limit).map((t) => (
                 <tr key={t.id} className="border-b border-border/50 hover:bg-surface-2">
-                  <td className={cn("num px-3 py-1.5 text-[11px] font-medium", t.kind === "buy" ? "text-bull" : "text-bear")}>
+                  <td
+                    className={cn(
+                      "num px-3 py-1.5 text-[11px] font-medium",
+                      t.kind === "buy" ? "text-bull" : "text-bear",
+                    )}
+                  >
                     {t.kind.toUpperCase()}
                   </td>
                   <td className="num px-3 py-1.5 text-[11px]">{formatUsd(t.valueUsd)}</td>
-                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">{formatNum(t.amountToken)}</td>
-                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">{shortAddress(t.wallet)}</td>
-                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">{timeAgo(t.timestamp)}</td>
+                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">
+                    {formatNum(t.amountToken)}
+                  </td>
+                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">
+                    {shortAddress(t.wallet)}
+                  </td>
+                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">
+                    {timeAgo(t.timestamp)}
+                  </td>
                   <td className="px-3 py-1.5">
                     {t.txHash ? (
                       <a

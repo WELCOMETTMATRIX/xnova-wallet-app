@@ -116,12 +116,8 @@ export async function fetchTrades(minUsd = 0): Promise<Trade[]> {
         const a = t.attributes ?? {};
         const kind = a.kind === "sell" ? "sell" : "buy";
         const valueUsd = Number(a.volume_in_usd ?? 0);
-        const priceUsd = Number(
-          (kind === "buy" ? a.price_to_in_usd : a.price_from_in_usd) ?? 0,
-        );
-        const amountToken = Number(
-          (kind === "buy" ? a.to_token_amount : a.from_token_amount) ?? 0,
-        );
+        const priceUsd = Number((kind === "buy" ? a.price_to_in_usd : a.price_from_in_usd) ?? 0);
+        const amountToken = Number((kind === "buy" ? a.to_token_amount : a.from_token_amount) ?? 0);
         return {
           id: t.id,
           kind,

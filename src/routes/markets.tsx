@@ -10,7 +10,15 @@ import { HoldersPanel } from "@/components/xnova/HoldersPanel";
 import { IntelPanel, TransfersPanel } from "@/components/xnova/IntelPanel";
 import { cn } from "@/lib/utils";
 
-const TABS = ["Overview", "Chart", "Trades", "Holders", "Whales", "Liquidity", "Transactions"] as const;
+const TABS = [
+  "Overview",
+  "Chart",
+  "Trades",
+  "Holders",
+  "Whales",
+  "Liquidity",
+  "Transactions",
+] as const;
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/markets")({
@@ -25,7 +33,8 @@ export const Route = createFileRoute("/markets")({
       { property: "og:title", content: "XNOVA Markets — Live Solana Trading Terminal" },
       {
         property: "og:description",
-        content: "Real-time XNOVA candles, trades, whales, holders and liquidity on Solana Mainnet.",
+        content:
+          "Real-time XNOVA candles, trades, whales, holders and liquidity on Solana Mainnet.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

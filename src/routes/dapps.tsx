@@ -54,8 +54,8 @@ function Dapps() {
         <header className="panel px-4 py-4">
           <h1 className="text-lg font-semibold tracking-tight">XNOVA dAPP EXPLORER</h1>
           <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-            A curated registry of Solana applications. Listing is not an endorsement. Never enter your
-            seed phrase into a website and never sign a transaction you do not understand.
+            A curated registry of Solana applications. Listing is not an endorsement. Never enter
+            your seed phrase into a website and never sign a transaction you do not understand.
           </p>
         </header>
 

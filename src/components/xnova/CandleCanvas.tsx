@@ -47,7 +47,11 @@ export function CandleCanvas({ candles, showMa }: { candles: Candle[]; showMa: b
         horzLines: { color: "rgba(255,255,255,0.04)" },
       },
       rightPriceScale: { borderColor: "rgba(255,255,255,0.08)" },
-      timeScale: { borderColor: "rgba(255,255,255,0.08)", timeVisible: true, secondsVisible: false },
+      timeScale: {
+        borderColor: "rgba(255,255,255,0.08)",
+        timeVisible: true,
+        secondsVisible: false,
+      },
       crosshair: {
         mode: 0,
         vertLine: { color: "rgba(255,70,60,0.5)", labelBackgroundColor: "#8c1a1a" },
