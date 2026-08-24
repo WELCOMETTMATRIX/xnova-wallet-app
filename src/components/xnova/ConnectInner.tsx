@@ -85,11 +85,10 @@ export function ConnectInner() {
     setConnecting(wallet.name);
     setError(null);
     try {
-      type ConnectFn = () => Promise<{
+      const connect = wallet.features[StandardConnect].connect as unknown as () => Promise<{
         accounts: Array<{ address: string; chains: string[] }>;
       }>;
-      const connectFn = wallet.features[StandardConnect].connect as ConnectFn;
-      const result = await connectFn();
+      const result = await connect();
       const account = result.accounts.find((candidate) =>
         candidate.chains.some((chain: string) => chain.startsWith("solana:")),
       );
