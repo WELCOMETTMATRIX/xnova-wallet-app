@@ -154,6 +154,21 @@ export async function fetchWalletPortfolio(address: string): Promise<WalletPortf
     .filter((t) => t.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 
+  // Authoritative XNOVA lookup: a single program-wide query can be rejected by a
+  // public RPC, so the token the terminal cares about is read by mint directly.
+  if (!raw.some((t) => t.mint === XNOVA.tokenMint)) {
+    const direct = await rpc<ParsedAccountsResult>("getTokenAccountsByOwner", [
+      address,
+      { mint: XNOVA.tokenMint },
+      { encoding: "jsonParsed" },
+    ]).catch(() => null);
+    const xnova = parseAccounts(direct).reduce(
+      (sum, t) => ({ ...t, amount: sum.amount + t.amount }),
+      { mint: XNOVA.tokenMint, amount: 0, decimals: 6 },
+    );
+    if (xnova.amount > 0) raw.unshift(xnova);
+  }
+
   const prices = await fetchTokenPrices([SOL_MINT, XNOVA.tokenMint, ...raw.map((t) => t.mint)]);
 
   // DexScreener sometimes has no indexed pair for a fresh pump.fun mint.

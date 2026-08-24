@@ -1,13 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { TerminalLayout } from "@/components/xnova/Layout";
 import { LiveDot, Panel, Stat } from "@/components/xnova/primitives";
 import { TELEGRAM_ICON, XNOVA, timeAgo } from "@/lib/xnova/config";
 import { alertStatusQuery, publicConfigQuery } from "@/lib/xnova/queries";
-import { sendTestAlert, triggerAlertScan } from "@/lib/xnova/alerts.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/alerts")({
@@ -61,35 +58,8 @@ const COMMANDS = [
 ];
 
 function Alerts() {
-  const qc = useQueryClient();
   const { data: config } = useQuery(publicConfigQuery());
   const { data: status } = useQuery(alertStatusQuery());
-  const [message, setMessage] = useState("XNOVA terminal connection test.");
-
-  const test = useMutation({
-    mutationFn: () => sendTestAlert({ data: { message } }),
-    onSuccess: (res) =>
-      res.ok
-        ? toast.success("Test notification delivered to Telegram")
-        : toast.error(`Telegram error: ${res.error}`),
-    onError: () => toast.error("Could not reach the notification service"),
-  });
-
-  const scan = useMutation({
-    mutationFn: () => triggerAlertScan(),
-    onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ["xnova", "alert-status"] });
-      if (!res.ok) {
-        toast.error(`Scan failed: ${res.error}`);
-        return;
-      }
-      toast.success(
-        res.data.skipped
-          ? "Scan skipped — Telegram is not configured"
-          : `Scanned ${res.data.scanned} trades · ${res.data.notified} notifications sent`,
-      );
-    },
-  });
 
   const configured = Boolean(config?.telegramConfigured);
 
@@ -135,30 +105,16 @@ function Alerts() {
                 value={config?.solanaRpcConfigured ? "Connected" : "Public RPC"}
               />
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => scan.mutate()}
-                disabled={scan.isPending}
-                className="num rounded-sm bg-primary px-3 py-2 text-[11px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
-              >
-                {scan.isPending ? "Scanning…" : "Run scan now"}
-              </button>
-              <button
-                type="button"
-                onClick={() => test.mutate()}
-                disabled={test.isPending || !configured}
-                className="num rounded-sm border border-border px-3 py-2 text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground disabled:opacity-40"
-              >
-                Send test alert
-              </button>
+            <div className="mt-4 rounded-sm border border-border bg-surface-2/40 p-3">
+              <span className="num text-[11px] uppercase tracking-widest text-primary">
+                Fully automated
+              </span>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                The engine scans the pool continuously and posts every trade of $1 or more to
+                Telegram on its own. There is no manual trigger and no user configuration — alerts
+                are read-only by design.
+              </p>
             </div>
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="num mt-2 w-full rounded-sm border border-border bg-background px-3 py-2 text-[11px] outline-none"
-              aria-label="Test message"
-            />
           </Panel>
 
           <Panel title="ALERT TYPES" className="lg:col-span-2">

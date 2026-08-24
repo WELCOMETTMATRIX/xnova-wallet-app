@@ -17,8 +17,9 @@ export interface AlertThresholds {
   pricePct: number;
 }
 
+// Every trade from $1 upwards is reported, with no upper bound.
 export const DEFAULT_THRESHOLDS: AlertThresholds = {
-  minTradeUsd: 250,
+  minTradeUsd: 1,
   whaleUsd: 5_000,
   pricePct: 10,
 };
@@ -76,12 +77,20 @@ export async function runAlertScan(): Promise<{
   let scanned = 0;
 
   try {
-    const trades = await fetchTrades(cfg.minTradeUsd);
+    let trades = await fetchTrades(cfg.minTradeUsd).catch(() => [] as Awaited<
+      ReturnType<typeof fetchTrades>
+    >);
+    // Pool indexer empty or rate limited: rebuild swaps straight from chain.
+    if (trades.length === 0) {
+      const { fetchChainTrades } = await import("./providers/chain-trades.server");
+      trades = await fetchChainTrades(30).catch(() => []);
+    }
+    trades = trades.filter((t) => t.valueUsd >= cfg.minTradeUsd);
     scanned = trades.length;
     const fresh = trades
       .filter((t) => !state.seen.has(t.id) && t.timestamp > state.lastTradeTs)
       .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(-10);
+      .slice(-25);
 
     // First run only primes the cursor so history is not replayed into chat.
     if (state.lastTradeTs === 0) {
@@ -121,4 +130,27 @@ export async function runAlertScan(): Promise<{
   }
 
   return { scanned, notified };
+}
+
+/**
+ * Automatic scheduler. The scan is fully agent-driven: any live data request
+ * from the terminal or the public market endpoint keeps the alert loop warm,
+ * throttled so the upstream providers are never hammered. Users cannot enable,
+ * disable or configure alerts — the engine decides on its own.
+ */
+const AUTO_INTERVAL_MS = 45_000;
+let inFlight: Promise<unknown> | null = null;
+
+export async function maybeRunAlertScan(): Promise<void> {
+  if (!telegramConfigured()) return;
+  if (inFlight) return;
+  if (Date.now() - state.lastRunAt < AUTO_INTERVAL_MS) return;
+  inFlight = runAlertScan().catch((error: unknown) => {
+    console.error("[xnova:autoscan]", error instanceof Error ? error.message : error);
+  });
+  try {
+    await inFlight;
+  } finally {
+    inFlight = null;
+  }
 }

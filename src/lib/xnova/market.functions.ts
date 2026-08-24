@@ -10,9 +10,17 @@ import {
   fetchTransfersResilient,
 } from "./providers/onchain-resolve.server";
 
-export const getMarket = createServerFn({ method: "GET" }).handler(async () =>
-  attempt("dexscreener", fetchMarket),
-);
+export const getMarket = createServerFn({ method: "GET" }).handler(async () => {
+  const result = await attempt("dexscreener", fetchMarket);
+  // Automatic alert loop: every live market poll keeps the Telegram engine warm.
+  try {
+    const { maybeRunAlertScan } = await import("./alerts.server");
+    await maybeRunAlertScan();
+  } catch (error) {
+    console.error("[xnova:autoscan]", error instanceof Error ? error.message : error);
+  }
+  return result;
+});
 
 export const getCandles = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
