@@ -91,7 +91,6 @@ export function ConnectInner() {
       };
       const result = await feature.connect();
       const account = result.accounts.find((candidate) =>
-      const account = result.accounts.find((candidate) =>
         candidate.chains.some((chain: string) => chain.startsWith("solana:")),
       );
       if (!account) throw new Error("No Solana account was returned");
