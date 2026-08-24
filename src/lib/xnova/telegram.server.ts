@@ -21,8 +21,33 @@ function lovableKey(): string {
   return key;
 }
 
+const alertChatIds = new Set<string>();
+
+function defaultChatId(): string | undefined {
+  return telegramChatId() ?? undefined;
+}
+
+export function registerTelegramChat(chatId: string | number | undefined | null): void {
+  if (chatId == null) return;
+  const normalized = String(chatId).trim();
+  if (normalized) alertChatIds.add(normalized);
+}
+
+export function telegramAlertRecipients(): string[] {
+  const configured = defaultChatId();
+  const recipients = new Set<string>(alertChatIds);
+  if (configured) recipients.add(configured);
+  return [...recipients];
+}
+
+export async function sendTelegramAlert(text: string): Promise<void> {
+  const recipients = telegramAlertRecipients();
+  if (recipients.length === 0) throw new Error("Telegram chat id is not configured");
+  await Promise.all(recipients.map((chatId) => sendTelegram(text, chatId)));
+}
+
 export async function sendTelegram(text: string, chatId?: string): Promise<void> {
-  const chat = chatId ?? telegramChatId();
+  const chat = chatId ?? defaultChatId();
   if (!chat) throw new Error("Telegram chat id is not configured");
 
   const useLovableGateway = Boolean(lovableApiKey());

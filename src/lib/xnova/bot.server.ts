@@ -3,7 +3,7 @@ import { XNOVA, formatNum, formatPct, formatUsd, shortAddress, solscanTx } from 
 import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
 import { fetchChainTrades } from "./providers/chain-trades.server";
 import { fetchTokenMeta, fetchTopHolders } from "./providers/solscan.server";
-import { sendTelegram } from "./telegram.server";
+import { registerTelegramChat, sendTelegram } from "./telegram.server";
 import { chatWithAi } from "./ai.server";
 
 const UNAVAILABLE = "Data temporarily unavailable.";
@@ -31,6 +31,7 @@ const HELP = [
 ].join("\n");
 
 async function reply(chatId: string, text: string) {
+  registerTelegramChat(chatId);
   await sendTelegram(text, chatId);
 }
 
@@ -45,7 +46,10 @@ async function command(cmd: string, chatId: string) {
   switch (cmd) {
     case "/start":
       await welcome(chatId);
-      return reply(chatId, `<b>XNOVA TERMINAL</b>\nSolana Web3 intelligence, alerts and analytics.\n\n${HELP}`);
+      return reply(
+        chatId,
+        `<b>XNOVA TERMINAL</b>\nSolana Web3 intelligence, alerts and analytics.\n\n${HELP}`,
+      );
     case "/help":
       return reply(chatId, HELP);
     case "/token": {
@@ -176,11 +180,14 @@ export async function handleTelegramUpdate(update: unknown): Promise<void> {
     const memberChatId = member?.chat?.id;
     const status = member?.new_chat_member?.status;
     if (memberChatId != null && (status === "member" || status === "administrator")) {
+      registerTelegramChat(memberChatId);
       const user = member?.new_chat_member?.user;
       await welcome(String(memberChatId), user?.first_name ?? user?.username);
     }
     return;
   }
+
+  registerTelegramChat(chatId);
 
   if (msg?.new_chat_members?.length) {
     for (const member of msg.new_chat_members) {
@@ -202,7 +209,10 @@ export async function handleTelegramUpdate(update: unknown): Promise<void> {
       const response = await chatWithAi([{ role: "user", content: trimmed }]);
       await reply(String(chatId), response);
     } catch (error) {
-      await reply(String(chatId), "AI is temporarily unavailable. Use /help for the terminal commands.");
+      await reply(
+        String(chatId),
+        "AI is temporarily unavailable. Use /help for the terminal commands.",
+      );
       console.error("[xnova:telegram-ai]", error instanceof Error ? error.message : error);
     }
   }

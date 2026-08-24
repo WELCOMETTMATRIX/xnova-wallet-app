@@ -3,7 +3,7 @@ import { fetchChainTrades } from "./providers/chain-trades.server";
 import {
   formatPriceAlert,
   formatTradeAlert,
-  sendTelegram,
+  sendTelegramAlert,
   telegramConfigured,
 } from "./telegram.server";
 import { formatPct, formatUsd } from "./config";
@@ -98,7 +98,7 @@ export async function runAlertScan(): Promise<{
       state.lastTradeTs = Math.max(0, ...trades.map((t) => t.timestamp));
     } else {
       for (const trade of fresh) {
-        await sendTelegram(formatTradeAlert(trade, trade.valueUsd >= cfg.whaleUsd));
+        await sendTelegramAlert(formatTradeAlert(trade, trade.valueUsd >= cfg.whaleUsd));
         state.seen.add(trade.id);
         state.lastTradeTs = Math.max(state.lastTradeTs, trade.timestamp);
         notified += 1;
@@ -114,7 +114,7 @@ export async function runAlertScan(): Promise<{
       Math.abs(h1) >= cfg.pricePct &&
       Date.now() - state.lastPriceAlertAt > 30 * 60 * 1000
     ) {
-      await sendTelegram(
+      await sendTelegramAlert(
         formatPriceAlert(
           "PRICE ALERT",
           `1h move: <b>${formatPct(h1)}</b>\nPrice: <b>${formatUsd(market.priceUsd, 8)}</b>\nLiquidity: ${formatUsd(market.liquidityUsd)}\n24h Volume: ${formatUsd(market.volume24h)}`,
