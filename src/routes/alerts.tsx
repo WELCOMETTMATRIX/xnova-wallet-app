@@ -105,30 +105,16 @@ function Alerts() {
                 value={config?.solanaRpcConfigured ? "Connected" : "Public RPC"}
               />
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => scan.mutate()}
-                disabled={scan.isPending}
-                className="num rounded-sm bg-primary px-3 py-2 text-[11px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
-              >
-                {scan.isPending ? "Scanning…" : "Run scan now"}
-              </button>
-              <button
-                type="button"
-                onClick={() => test.mutate()}
-                disabled={test.isPending || !configured}
-                className="num rounded-sm border border-border px-3 py-2 text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground disabled:opacity-40"
-              >
-                Send test alert
-              </button>
+            <div className="mt-4 rounded-sm border border-border bg-surface-2/40 p-3">
+              <span className="num text-[11px] uppercase tracking-widest text-primary">
+                Fully automated
+              </span>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                The engine scans the pool continuously and posts every trade of $1 or more to
+                Telegram on its own. There is no manual trigger and no user configuration — alerts
+                are read-only by design.
+              </p>
             </div>
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="num mt-2 w-full rounded-sm border border-border bg-background px-3 py-2 text-[11px] outline-none"
-              aria-label="Test message"
-            />
           </Panel>
 
           <Panel title="ALERT TYPES" className="lg:col-span-2">
