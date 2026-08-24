@@ -66,9 +66,9 @@ export function ConnectInner() {
     };
 
     syncAccount();
-    const eventFeature = activeWallet.features[StandardEvents] as
-      | EventWallet["features"][typeof StandardEvents]
-      | undefined;
+    const eventFeature = activeWallet.features[StandardEvents] as {
+      on: (event: "change", listener: () => void) => (() => void) | undefined;
+    } | undefined;
     const off = eventFeature?.on("change", syncAccount);
     return () => off?.();
   }, [activeWallet]);
