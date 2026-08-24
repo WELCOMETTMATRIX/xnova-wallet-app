@@ -23,9 +23,17 @@ export interface WalletPortfolio {
   totalValueUsd: number | null;
   pricedCount: number;
   tokens: PortfolioToken[];
+  // Tokens exist but were not priced because pricing is slow / unavailable.
+  unpricedCount: number;
+  // True if prices were cut short to meet the response budget.
+  partial: boolean;
+  // Human-readable timing note.
+  source: string;
 }
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
+const LEGACY_TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+const TOKEN_2022_PROGRAM = "TokenzQdBNbBqPp7Z3ha7pJ9Zf3G5m1V8Zz";
 
 interface DsToken {
   chainId?: string;
@@ -38,22 +46,27 @@ interface DsToken {
 /** Live USD prices for a batch of SPL mints (DexScreener, public API). */
 async function fetchTokenPrices(
   mints: string[],
+  timeoutMs: number,
 ): Promise<Map<string, { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }>> {
   const out = new Map<
     string,
     { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }
   >();
-  const unique = [...new Set(mints)].slice(0, 60);
+  const unique = [...new Set(mints)].slice(0, 40);
   const chunks: string[][] = [];
-  for (let i = 0; i < unique.length; i += 30) chunks.push(unique.slice(i, i + 30));
+  for (let i = 0; i < unique.length; i += 20) chunks.push(unique.slice(i, i + 20));
+
+  const deadline = Date.now() + timeoutMs;
 
   await Promise.all(
     chunks.map(async (chunk) => {
+      if (Date.now() > deadline) return;
       const key = `ds:prices:${chunk.join(",")}`;
       try {
         const payload = await cachedJson(key, 60_000, () =>
           getJson<{ pairs?: DsToken[] | null }>(
             `https://api.dexscreener.com/latest/dex/tokens/${chunk.join(",")}`,
+            { timeoutMs: 7_000, retries: 1 },
           ),
         );
         for (const pair of payload.pairs ?? []) {
@@ -83,40 +96,62 @@ export function isSolanaAddress(address: string): boolean {
   return BASE58.test(address);
 }
 
+interface TokenAccount {
+  mint: string;
+  amount: number;
+  decimals: number;
+  programId: string;
+}
+
+function parseTokenAccounts(
+  programId: string,
+  value: { account: { data: { parsed: { info: { mint: string; tokenAmount: { amount: string; decimals: number; uiAmount: number | null } } } } } }[];
+} {
+  return (value ?? []).map((a) => a.account.data.parsed.info).map((i) => ({
+    mint: i.mint,
+    amount: i.tokenAmount.uiAmount ?? 0,
+    decimals: i.tokenAmount.decimals,
+    programId,
+  }));
+}
+
 export async function fetchWalletPortfolio(address: string): Promise<WalletPortfolio> {
   if (!isSolanaAddress(address)) throw new Error("Invalid Solana wallet address");
 
-  const lamports = await rpc<{ value: number }>("getBalance", [address]);
-  const accounts = await rpc<{
-    value: {
-      account: {
-        data: {
-          parsed: {
-            info: {
-              mint: string;
-              tokenAmount: { amount: string; decimals: number; uiAmount: number | null };
-            };
-          };
-        };
-      };
-    }[];
-  }>("getTokenAccountsByOwner", [
-    address,
-    { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
-    { encoding: "jsonParsed" },
+  const BUDGET_MS = 12_000;
+  const deadline = Date.now() + BUDGET_MS;
+  const balancePromise = rpc<{ value: number }>("getBalance", [address]);
+
+  const accountsPromise = Promise.all([
+    rpc<{
+      value: { account: { data: { parsed: { info: { mint: string; tokenAmount: { amount: string; decimals: number; uiAmount: number | null } } } } } }[];
+    }>("getTokenAccountsByOwner", [
+      address,
+      { programId: LEGACY_TOKEN_PROGRAM },
+      { encoding: "jsonParsed" },
+    ]),
+    rpc<{
+      value: { account: { data: { parsed: { info: { mint: string; tokenAmount: { amount: string; decimals: number; uiAmount: number | null } } } } } }[];
+    }>("getTokenAccountsByOwner", [
+      address,
+      { programId: TOKEN_2022_PROGRAM },
+      { encoding: "jsonParsed" },
+    ]),
   ]);
 
-  const raw = (accounts.value ?? [])
-    .map((a) => a.account.data.parsed.info)
-    .map((i) => ({
-      mint: i.mint,
-      amount: i.tokenAmount.uiAmount ?? 0,
-      decimals: i.tokenAmount.decimals,
-    }))
+  const [lamports, [legacy, token2022]] = await Promise.all([balancePromise, accountsPromise]);
+
+  const raw: TokenAccount[] = parseTokenAccounts(LEGACY_TOKEN_PROGRAM, legacy.value)
+    .concat(parseTokenAccounts(TOKEN_2022_PROGRAM, token2022.value))
     .filter((t) => t.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 
-  const prices = await fetchTokenPrices([SOL_MINT, ...raw.map((t) => t.mint)]);
+  const xnova = raw.find((t) => t.mint === XNOVA.tokenMint);
+  const topByAmount = raw.slice(0, 20);
+  const priority = [XNOVA.tokenMint, SOL_MINT, ...topByAmount.map((t) => t.mint)];
+  const priceBudget = Math.max(2_000, deadline - Date.now() - 1_500);
+  const prices = await fetchTokenPrices(priority, priceBudget);
+  const partial = Date.now() > deadline - 500;
 
   const tokens: PortfolioToken[] = raw.map((t) => {
     const meta = prices.get(t.mint);
@@ -143,12 +178,15 @@ export async function fetchWalletPortfolio(address: string): Promise<WalletPortf
     solBalance,
     solPriceUsd,
     solValueUsd,
-    xnovaBalance: tokens.find((t) => t.mint === XNOVA.tokenMint)?.amount ?? 0,
+    xnovaBalance: xnova?.amount ?? 0,
     tokensValueUsd,
     totalValueUsd:
       solValueUsd != null || tokensValueUsd != null ? (solValueUsd ?? 0) + (tokensValueUsd ?? 0) : null,
     pricedCount: priced.length,
+    unpricedCount: tokens.length - priced.length,
     tokens,
+    partial,
+    source: partial ? "Solana RPC + partial pricing" : "Solana RPC + DexScreener",
   };
 }
 

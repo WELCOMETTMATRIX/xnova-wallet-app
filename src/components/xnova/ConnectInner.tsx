@@ -1,5 +1,5 @@
 import { getWallets } from "@wallet-standard/app";
-import type { Wallet } from "@wallet-standard/base";
+import type { Wallet, WalletAccount } from "@wallet-standard/base";
 import {
   StandardConnect,
   StandardDisconnect,
@@ -66,9 +66,9 @@ export function ConnectInner() {
     };
 
     syncAccount();
-    const eventFeature = activeWallet.features[StandardEvents] as
-      | EventWallet["features"][typeof StandardEvents]
-      | undefined;
+    const eventFeature = activeWallet.features[StandardEvents] as {
+      on: (event: "change", listener: () => void) => (() => void) | undefined;
+    } | undefined;
     const off = eventFeature?.on("change", syncAccount);
     return () => off?.();
   }, [activeWallet]);
@@ -85,9 +85,13 @@ export function ConnectInner() {
     setConnecting(wallet.name);
     setError(null);
     try {
-      const result = await wallet.features[StandardConnect].connect();
+      const feature = wallet.features[StandardConnect] as {
+        version: string;
+        connect: (input?: { silent?: boolean }) => Promise<{ accounts: readonly WalletAccount[] }>;
+      };
+      const result = await feature.connect();
       const account = result.accounts.find((candidate) =>
-        candidate.chains.some((chain) => chain.startsWith("solana:")),
+        candidate.chains.some((chain: string) => chain.startsWith("solana:")),
       );
       if (!account) throw new Error("No Solana account was returned");
       setActiveWallet(wallet);
