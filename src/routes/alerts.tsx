@@ -58,35 +58,8 @@ const COMMANDS = [
 ];
 
 function Alerts() {
-  const qc = useQueryClient();
   const { data: config } = useQuery(publicConfigQuery());
   const { data: status } = useQuery(alertStatusQuery());
-  const [message, setMessage] = useState("XNOVA terminal connection test.");
-
-  const test = useMutation({
-    mutationFn: () => sendTestAlert({ data: { message } }),
-    onSuccess: (res) =>
-      res.ok
-        ? toast.success("Test notification delivered to Telegram")
-        : toast.error(`Telegram error: ${res.error}`),
-    onError: () => toast.error("Could not reach the notification service"),
-  });
-
-  const scan = useMutation({
-    mutationFn: () => triggerAlertScan(),
-    onSuccess: (res) => {
-      void qc.invalidateQueries({ queryKey: ["xnova", "alert-status"] });
-      if (!res.ok) {
-        toast.error(`Scan failed: ${res.error}`);
-        return;
-      }
-      toast.success(
-        res.data.skipped
-          ? "Scan skipped — Telegram is not configured"
-          : `Scanned ${res.data.scanned} trades · ${res.data.notified} notifications sent`,
-      );
-    },
-  });
 
   const configured = Boolean(config?.telegramConfigured);
 
