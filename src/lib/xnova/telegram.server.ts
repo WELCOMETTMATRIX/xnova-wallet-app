@@ -3,9 +3,10 @@ import type { Trade } from "./types";
 import { lovableApiKey, telegramApiKey, telegramChatId } from "./env.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
+const TELEGRAM_API_URL = "https://api.telegram.org/bot";
 
 export function telegramConfigured(): boolean {
-  return Boolean(telegramApiKey() && telegramChatId() && lovableApiKey());
+  return Boolean(telegramApiKey() && telegramChatId() && (lovableApiKey() || telegramApiKey()));
 }
 
 function apiKey(): string {
@@ -24,20 +25,28 @@ export async function sendTelegram(text: string, chatId?: string): Promise<void>
   const chat = chatId ?? telegramChatId();
   if (!chat) throw new Error("Telegram chat id is not configured");
 
-  const res = await fetch(`${GATEWAY_URL}/sendMessage`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      Authorization: `Bearer ${lovableKey()}`,
-      "X-Connection-Api-Key": apiKey(),
+  const useLovableGateway = Boolean(lovableApiKey());
+  const res = await fetch(
+    useLovableGateway ? `${GATEWAY_URL}/sendMessage` : `${TELEGRAM_API_URL}${apiKey()}/sendMessage`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(useLovableGateway
+          ? {
+              Authorization: `Bearer ${lovableKey()}`,
+              "X-Connection-Api-Key": apiKey(),
+            }
+          : {}),
+      },
+      body: JSON.stringify({
+        chat_id: chat,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
     },
-    body: JSON.stringify({
-      chat_id: chat,
-      text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
-    }),
-  });
+  );
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");

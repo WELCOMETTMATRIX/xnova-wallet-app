@@ -4,6 +4,7 @@ import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
 import { fetchChainTrades } from "./providers/chain-trades.server";
 import { fetchTokenMeta, fetchTopHolders } from "./providers/solscan.server";
 import { sendTelegram } from "./telegram.server";
+import { chatWithAi } from "./ai.server";
 
 const UNAVAILABLE = "Data temporarily unavailable.";
 
@@ -33,13 +34,18 @@ async function reply(chatId: string, text: string) {
   await sendTelegram(text, chatId);
 }
 
+const WELCOME = `<b>Welcome to XNOVA.</b>\n\nYou are connected to the XNOVA Solana intelligence terminal. I can help you navigate live market data, token identity, holder intelligence, whale activity, alerts and the terminal tools.\n\nUse /help to see commands, or ask a question directly. Never share a seed phrase or private key.`;
+
+async function welcome(chatId: string, name?: string) {
+  const safeName = name?.replace(/[<>]/g, "");
+  await reply(chatId, safeName ? `<b>Welcome, ${safeName}</b>\n\n${WELCOME}` : WELCOME);
+}
+
 async function command(cmd: string, chatId: string) {
   switch (cmd) {
     case "/start":
-      return reply(
-        chatId,
-        `<b>XNOVA TERMINAL</b>\nSolana Web3 intelligence, alerts and analytics.\n\n${HELP}`,
-      );
+      await welcome(chatId);
+      return reply(chatId, `<b>XNOVA TERMINAL</b>\nSolana Web3 intelligence, alerts and analytics.\n\n${HELP}`);
     case "/help":
       return reply(chatId, HELP);
     case "/token": {
@@ -152,11 +158,52 @@ async function command(cmd: string, chatId: string) {
 }
 
 export async function handleTelegramUpdate(update: unknown): Promise<void> {
-  const msg = (update as { message?: { chat?: { id?: number | string }; text?: string } }).message;
+  const payload = update as {
+    message?: {
+      chat?: { id?: number | string };
+      text?: string;
+      new_chat_members?: Array<{ first_name?: string; username?: string }>;
+    };
+    chat_member?: {
+      chat?: { id?: number | string };
+      new_chat_member?: { status?: string; user?: { first_name?: string; username?: string } };
+    };
+  };
+  const msg = payload.message;
   const chatId = msg?.chat?.id;
+  if (chatId == null) {
+    const member = payload.chat_member;
+    const memberChatId = member?.chat?.id;
+    const status = member?.new_chat_member?.status;
+    if (memberChatId != null && (status === "member" || status === "administrator")) {
+      const user = member?.new_chat_member?.user;
+      await welcome(String(memberChatId), user?.first_name ?? user?.username);
+    }
+    return;
+  }
+
+  if (msg?.new_chat_members?.length) {
+    for (const member of msg.new_chat_members) {
+      await welcome(String(chatId), member.first_name ?? member.username);
+    }
+  }
+
   const text = msg?.text;
-  if (chatId == null || typeof text !== "string") return;
-  const cmd = text.trim().split(/\s+/)[0]?.split("@")[0]?.toLowerCase();
-  if (!cmd || !cmd.startsWith("/")) return;
-  await command(cmd, String(chatId));
+  if (typeof text !== "string") return;
+  const trimmed = text.trim();
+  const cmd = trimmed.split(/\s+/)[0]?.split("@")[0]?.toLowerCase();
+  if (cmd?.startsWith("/")) {
+    await command(cmd, String(chatId));
+    return;
+  }
+
+  if (trimmed.length > 0) {
+    try {
+      const response = await chatWithAi([{ role: "user", content: trimmed }]);
+      await reply(String(chatId), response);
+    } catch (error) {
+      await reply(String(chatId), "AI is temporarily unavailable. Use /help for the terminal commands.");
+      console.error("[xnova:telegram-ai]", error instanceof Error ? error.message : error);
+    }
+  }
 }
