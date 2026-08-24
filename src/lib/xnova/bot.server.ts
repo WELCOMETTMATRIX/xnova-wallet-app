@@ -13,13 +13,6 @@ function unavailable(error: unknown): string {
   return detail ? `${UNAVAILABLE}\n<code>${detail.slice(0, 220)}</code>` : UNAVAILABLE;
 }
 
-/** Chats subscribed via /watch (in-memory; wire to a store for persistence). */
-const watchers = new Set<string>();
-
-export function watcherChats(): string[] {
-  return [...watchers];
-}
-
 const HELP = [
   "<b>XNOVA — SOLANA WEB3 INTELLIGENCE TERMINAL</b>",
   "",
@@ -29,10 +22,10 @@ const HELP = [
   "/holders — top holders",
   "/volume — 24h volume and trade counts",
   "/liquidity — pool liquidity",
-  "/whales — recent large transactions",
-  "/alerts — alert configuration",
-  "/watch — subscribe this chat to alerts",
-  "/unwatch — unsubscribe this chat",
+  "/whales — recent $1+ transactions",
+  "/alerts — automatic alert engine status",
+  "/watch — show automatic alert routing",
+  "/unwatch — show automatic alert routing",
   "/status — data source status",
 ].join("\n");
 
@@ -116,9 +109,8 @@ async function command(cmd: string, chatId: string) {
     }
     case "/whales": {
       try {
-        const trades = (await fetchTrades(2500)).slice(0, 8);
-        if (trades.length === 0)
-          return reply(chatId, "No large transactions in the recent window.");
+        const trades = (await fetchTrades(1)).slice(0, 8);
+        if (trades.length === 0) return reply(chatId, "No $1+ transactions in the recent window.");
         const rows = trades
           .map(
             (t) =>
@@ -133,14 +125,14 @@ async function command(cmd: string, chatId: string) {
     case "/alerts":
       return reply(
         chatId,
-        `<b>XNOVA ALERTS</b>\nBuy / sell notifications, whale alerts and price-move alerts are pushed automatically.\n\nMin trade: $${process.env["XNOVA_ALERT_MIN_TRADE_USD"] ?? 250}\nWhale threshold: $${process.env["XNOVA_ALERT_WHALE_USD"] ?? 5000}\nPrice move: ${process.env["XNOVA_ALERT_PRICE_PCT"] ?? 10}%\n\nUse /watch to receive them in this chat.`,
+        `<b>XNOVA ALERTS</b>\nBuy / sell notifications, whale alerts and price-move alerts are pushed automatically by the AI engine.\n\nMin trade: $1\nMax trade: none\nWhale threshold: $${process.env["XNOVA_ALERT_WHALE_USD"] ?? 5000}\nPrice move: ${process.env["XNOVA_ALERT_PRICE_PCT"] ?? 10}%\n\nUsers cannot manage alert thresholds from Telegram.`,
       );
     case "/watch":
-      watchers.add(chatId);
-      return reply(chatId, "✅ This chat is now watching XNOVA activity.");
     case "/unwatch":
-      watchers.delete(chatId);
-      return reply(chatId, "Unsubscribed from XNOVA alerts.");
+      return reply(
+        chatId,
+        "XNOVA alerts are automatic and read-only. The AI engine sends every $1+ transaction to the configured Telegram destination with no maximum cap.",
+      );
     case "/status": {
       const market = await fetchMarketSnapshot().then(
         () => "DexScreener: online",

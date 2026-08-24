@@ -19,6 +19,8 @@ export const askXnovaAi = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => schema.parse(input))
   .handler(async ({ data }) => {
     try {
+      const { maybeRunAlertScan } = await import("./alerts.server");
+      await maybeRunAlertScan();
       return { ok: true as const, reply: await chatWithAi(data.messages) };
     } catch (error) {
       return {
