@@ -1,7 +1,7 @@
 import { solscanKey } from "./env.server";
 import { XNOVA, formatNum, formatPct, formatUsd, shortAddress, solscanTx } from "./config";
 import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
-import { fetchTrades } from "./providers/geckoterminal.server";
+import { fetchChainTrades } from "./providers/chain-trades.server";
 import { fetchTokenMeta, fetchTopHolders } from "./providers/solscan.server";
 import { sendTelegram } from "./telegram.server";
 
@@ -109,7 +109,7 @@ async function command(cmd: string, chatId: string) {
     }
     case "/whales": {
       try {
-        const trades = (await fetchTrades(1)).slice(0, 8);
+        const trades = (await fetchChainTrades(30)).filter((t) => t.valueUsd >= 1).slice(0, 8);
         if (trades.length === 0) return reply(chatId, "No $1+ transactions in the recent window.");
         const rows = trades
           .map(

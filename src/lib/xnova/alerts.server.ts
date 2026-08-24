@@ -1,5 +1,5 @@
 import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
-import { fetchTrades } from "./providers/geckoterminal.server";
+import { fetchChainTrades } from "./providers/chain-trades.server";
 import {
   formatPriceAlert,
   formatTradeAlert,
@@ -80,14 +80,9 @@ export async function runAlertScan(): Promise<{
   let scanned = 0;
 
   try {
-    let trades = await fetchTrades(cfg.minTradeUsd).catch(
-      () => [] as Awaited<ReturnType<typeof fetchTrades>>,
+    let trades = await fetchChainTrades(30).catch(
+      () => [] as Awaited<ReturnType<typeof fetchChainTrades>>,
     );
-    // Pool indexer empty or rate limited: rebuild swaps straight from chain.
-    if (trades.length === 0) {
-      const { fetchChainTrades } = await import("./providers/chain-trades.server");
-      trades = await fetchChainTrades(30).catch(() => []);
-    }
     trades = trades.filter((t) => t.valueUsd >= cfg.minTradeUsd);
     scanned = trades.length;
     const fresh = trades
@@ -96,7 +91,7 @@ export async function runAlertScan(): Promise<{
       .slice(-25);
 
     // First run only primes the cursor so history is not replayed into chat.
-    // GeckoTerminal returns newest first, so the cursor must be the newest
+    // On-chain reconstruction returns newest first, so the cursor must be the newest
     // timestamp; otherwise older trades could block new $1+ transactions.
     if (state.lastTradeTs === 0) {
       for (const t of trades) state.seen.add(t.id);

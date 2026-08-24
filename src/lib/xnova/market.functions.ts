@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { attempt, withTimeout } from "./result";
 import { fetchMarket } from "./providers/market.server";
-import { fetchCandles, fetchTrades } from "./providers/geckoterminal.server";
+import { fetchChainTrades } from "./providers/chain-trades.server";
 import {
   fetchHoldersResilient,
   fetchTokenMetaResilient,
@@ -31,15 +31,17 @@ export const getCandles = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) =>
-    attempt("geckoterminal", () => fetchCandles(data.timeframe, data.aggregate)),
-  );
+  .handler(async () => attempt("dexscreener-chart", async () => []));
 
 export const getTrades = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
     z.object({ minUsd: z.number().min(0).max(1_000_000).default(0) }).parse(input ?? {}),
   )
-  .handler(async ({ data }) => attempt("geckoterminal", () => fetchTrades(data.minUsd)));
+  .handler(async ({ data }) =>
+    attempt("dexscreener-onchain-trades", async () =>
+      (await fetchChainTrades(50)).filter((trade) => trade.valueUsd >= data.minUsd),
+    ),
+  );
 
 export const getTokenMeta = createServerFn({ method: "GET" }).handler(async () =>
   attempt("token-meta", () => withTimeout(12_000, fetchTokenMetaResilient)),

@@ -184,13 +184,6 @@ export const DAPPS: Dapp[] = [
     added: "2026-08-01",
   },
   {
-    name: "GeckoTerminal",
-    url: "https://www.geckoterminal.com/solana",
-    category: "Analytics",
-    description: "On-chain DEX analytics and OHLCV data.",
-    added: "2026-08-01",
-  },
-  {
     name: "Birdeye",
     url: "https://birdeye.so",
     category: "Analytics",

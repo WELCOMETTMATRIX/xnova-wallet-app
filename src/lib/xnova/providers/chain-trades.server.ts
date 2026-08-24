@@ -1,16 +1,16 @@
 /**
  * Historical swap reconstruction straight from Solana.
  *
- * GeckoTerminal only serves trades inside a short live window; for a young or
- * quiet pool it answers with an empty list. This module rebuilds the pool's
- * most recent real swaps from confirmed signatures so the terminal can show
- * past trades instead of an empty panel. Every number here is on-chain data:
+ * This module rebuilds the pool's most recent real swaps from confirmed
+ * signatures so the terminal, Telegram alerts and AI commands can use the same
+ * no-key on-chain source instead of a paid or rate-limited trade API. Every
+ * number here is on-chain data:
  * token amounts come from parsed balance deltas and USD value from the SOL
  * leg of the swap priced with the live pool quote.
  */
 import { XNOVA } from "../config";
 import type { Trade } from "../types";
-import { fetchPoolMarket } from "./geckoterminal.server";
+import { fetchMarketSnapshot } from "./dexscreener.server";
 import { cachedJson } from "./http.server";
 import { solanaRpc } from "./onchain.server";
 
@@ -40,7 +40,7 @@ interface TokenBalance {
 
 async function solPriceUsd(): Promise<number | null> {
   try {
-    const m = await fetchPoolMarket();
+    const m = await fetchMarketSnapshot();
     if (m.priceUsd && m.priceNative && m.priceNative > 0) return m.priceUsd / m.priceNative;
     return null;
   } catch {
