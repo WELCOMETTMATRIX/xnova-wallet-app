@@ -37,6 +37,8 @@ export const telegramChatId = () => env("TELEGRAM_CHAT_ID", "TELEGRAM_CHAT", "TE
 export const lovableApiKey = () => env("LOVABLE_API_KEY");
 
 export function telegramWebhookSecret(): string {
+  const configured = env("TELEGRAM_WEBHOOK_SECRET");
+  if (configured) return configured;
   const key = telegramApiKey();
   if (!key) throw new Error("Telegram API key is not configured");
   return createHash("sha256").update(`telegram-webhook:${key}`).digest("base64url");
