@@ -1,13 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { TerminalLayout } from "@/components/xnova/Layout";
 import { LiveDot, Panel, Stat } from "@/components/xnova/primitives";
 import { TELEGRAM_ICON, XNOVA, timeAgo } from "@/lib/xnova/config";
 import { alertStatusQuery, publicConfigQuery } from "@/lib/xnova/queries";
-import { sendTestAlert, triggerAlertScan } from "@/lib/xnova/alerts.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/alerts")({
