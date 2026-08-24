@@ -1,5 +1,5 @@
 import { getWallets } from "@wallet-standard/app";
-import type { Wallet } from "@wallet-standard/base";
+import type { Wallet, WalletAccount } from "@wallet-standard/base";
 import {
   StandardConnect,
   StandardDisconnect,
