@@ -20,7 +20,7 @@ export function WhalePanel({ threshold = 2500 }: { threshold?: number }) {
         {isPending ? (
           <Loading label="Scanning large transactions" />
         ) : !data?.ok ? (
-          <Unavailable source="GeckoTerminal trades" detail={data?.error} />
+          <Unavailable source="DexScreener/on-chain trades" detail={data?.error} />
         ) : data.data.length === 0 ? (
           <Unavailable source="No whale activity in the recent window" />
         ) : (

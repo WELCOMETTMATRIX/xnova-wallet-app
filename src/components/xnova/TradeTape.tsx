@@ -23,7 +23,7 @@ export function TradeTape({
         {isPending ? (
           <Loading label="Loading trades" />
         ) : !data?.ok ? (
-          <Unavailable source="GeckoTerminal trades" detail={data?.error} />
+          <Unavailable source="DexScreener/on-chain trades" detail={data?.error} />
         ) : data.data.length === 0 ? (
           <Unavailable source="No trades in the current window" />
         ) : (
