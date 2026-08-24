@@ -1,6 +1,6 @@
 /**
- * Tiny external store holding the currently connected wallet.
- * Written by the Thirdweb bridge in the header, read anywhere via useConnectedWallet().
+ * Tiny external store holding the currently connected Solana wallet.
+ * Written by the Solana Wallet Standard connector in the header, read anywhere.
  */
 import { useSyncExternalStore } from "react";
 
