@@ -11,6 +11,7 @@
 import { XNOVA } from "../config";
 import type { Trade } from "../types";
 import { fetchMarketSnapshot } from "./dexscreener.server";
+import { fetchMarket } from "./market.server";
 import { cachedJson } from "./http.server";
 import { solanaRpc } from "./onchain.server";
 
@@ -40,7 +41,8 @@ interface TokenBalance {
 
 async function solPriceUsd(): Promise<number | null> {
   try {
-    const m = await fetchMarketSnapshot();
+    // Use the Vercel-safe provider resolver first so a DexScreener 429 does not blank whale activity.
+    const m = await fetchMarket().catch(() => fetchMarketSnapshot());
     if (m.priceUsd && m.priceNative && m.priceNative > 0) return m.priceUsd / m.priceNative;
     return null;
   } catch {
