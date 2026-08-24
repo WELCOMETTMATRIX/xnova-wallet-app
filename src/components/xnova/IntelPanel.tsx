@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { formatNum, formatPct, formatUsd, shortAddress, solscanTx, timeAgo } from "@/lib/xnova/config";
+import {
+  formatNum,
+  formatPct,
+  formatUsd,
+  shortAddress,
+  solscanTx,
+  timeAgo,
+} from "@/lib/xnova/config";
 import { holdersQuery, marketQuery, tokenMetaQuery, transfersQuery } from "@/lib/xnova/queries";
 import { Loading, Panel, Stat, Unavailable } from "./primitives";
 
@@ -17,13 +24,18 @@ export function IntelPanel() {
 
   const buys = m?.txns24h.buys ?? null;
   const sells = m?.txns24h.sells ?? null;
-  const pressure = buys != null && sells != null && buys + sells > 0 ? (buys / (buys + sells)) * 100 : null;
+  const pressure =
+    buys != null && sells != null && buys + sells > 0 ? (buys / (buys + sells)) * 100 : null;
   const liqRatio = m?.liquidityUsd && m?.marketCap ? (m.liquidityUsd / m.marketCap) * 100 : null;
 
   return (
     <Panel title="XNOVA INTELLIGENCE">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Supply" value={formatNum(md?.supply ?? null)} sub={md ? `${md.decimals ?? "—"} decimals` : "On-chain"} />
+        <Stat
+          label="Supply"
+          value={formatNum(md?.supply ?? null)}
+          sub={md ? `${md.decimals ?? "—"} decimals` : "On-chain"}
+        />
         <Stat label="Holders" value={formatNum(md?.holders ?? null)} />
         <Stat
           label="Top 10 concentration"
@@ -38,12 +50,20 @@ export function IntelPanel() {
         />
         <Stat label="Liquidity / MCap" value={liqRatio != null ? `${liqRatio.toFixed(2)}%` : "—"} />
         <Stat label="24h volume" value={formatUsd(m?.volume24h ?? null)} />
-        <Stat label="1h change" value={formatPct(m?.change.h1 ?? null)} tone={(m?.change.h1 ?? 0) >= 0 ? "bull" : "bear"} />
-        <Stat label="6h change" value={formatPct(m?.change.h6 ?? null)} tone={(m?.change.h6 ?? 0) >= 0 ? "bull" : "bear"} />
+        <Stat
+          label="1h change"
+          value={formatPct(m?.change.h1 ?? null)}
+          tone={(m?.change.h1 ?? 0) >= 0 ? "bull" : "bear"}
+        />
+        <Stat
+          label="6h change"
+          value={formatPct(m?.change.h6 ?? null)}
+          tone={(m?.change.h6 ?? 0) >= 0 ? "bull" : "bear"}
+        />
       </div>
       <p className="mt-3 border-t border-border pt-2 text-[11px] text-muted-foreground">
-        Signals are derived from live on-chain and market data only. This is not financial advice and
-        no outcome is guaranteed. Always verify contracts independently.
+        Signals are derived from live on-chain and market data only. This is not financial advice
+        and no outcome is guaranteed. Always verify contracts independently.
       </p>
     </Panel>
   );
@@ -52,7 +72,12 @@ export function IntelPanel() {
 export function TransfersPanel() {
   const { data, isPending } = useQuery(transfersQuery(20));
   return (
-    <Panel title="TOKEN TRANSFERS" dense className="h-[420px]" action={<span className="label-xs">On-chain</span>}>
+    <Panel
+      title="TOKEN TRANSFERS"
+      dense
+      className="h-[420px]"
+      action={<span className="label-xs">On-chain</span>}
+    >
       <div className="h-full overflow-y-auto">
         {isPending ? (
           <Loading label="Loading transfers" />
@@ -72,8 +97,12 @@ export function TransfersPanel() {
             <tbody>
               {data.data.map((t) => (
                 <tr key={t.signature} className="border-b border-border/50 hover:bg-surface-2">
-                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">{shortAddress(t.from)}</td>
-                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">{shortAddress(t.to)}</td>
+                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">
+                    {shortAddress(t.from)}
+                  </td>
+                  <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">
+                    {shortAddress(t.to)}
+                  </td>
                   <td className="num px-3 py-1.5 text-[11px]">{formatNum(t.amount)}</td>
                   <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">
                     <a

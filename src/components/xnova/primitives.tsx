@@ -52,24 +52,22 @@ export function Stat({
       >
         {value}
       </div>
-      {sub ? <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">{sub}</div> : null}
+      {sub ? (
+        <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">{sub}</div>
+      ) : null}
     </div>
   );
 }
 
-export function Unavailable({
-  source,
-  detail,
-}: {
-  source: string;
-  detail?: string | undefined;
-}) {
+export function Unavailable({ source, detail }: { source: string; detail?: string | undefined }) {
   return (
     <div className="flex h-full min-h-24 flex-col items-center justify-center gap-1 px-4 py-6 text-center">
       <AlertTriangle className="size-4 text-warn" aria-hidden />
       <p className="text-sm text-foreground">Data temporarily unavailable</p>
       <p className="label-xs">{source}</p>
-      {detail ? <p className="max-w-sm truncate text-[10px] text-muted-foreground">{detail}</p> : null}
+      {detail ? (
+        <p className="max-w-sm truncate text-[10px] text-muted-foreground">{detail}</p>
+      ) : null}
     </div>
   );
 }

@@ -22,7 +22,8 @@ export const Route = createFileRoute("/alerts")({
       { property: "og:title", content: "XNOVA Alerts — Telegram Notifications" },
       {
         property: "og:description",
-        content: "Configure and monitor the XNOVA Telegram alert engine for every on-chain buy and sell.",
+        content:
+          "Configure and monitor the XNOVA Telegram alert engine for every on-chain buy and sell.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -99,8 +100,8 @@ function Alerts() {
           <div>
             <h1 className="text-lg font-semibold tracking-tight">ALERT ENGINE</h1>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
-              Every qualifying XNOVA buy and sell is pushed to Telegram with value, amount, wallet and
-              a direct explorer link. Credentials live server-side only.
+              Every qualifying XNOVA buy and sell is pushed to Telegram with value, amount, wallet
+              and a direct explorer link. Credentials live server-side only.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -125,8 +126,14 @@ function Alerts() {
                 value={status?.lastRunAt ? timeAgo(status.lastRunAt) : "—"}
                 sub={status?.lastError ? "Last scan errored" : "Healthy"}
               />
-              <Stat label="Solscan" value={config?.solscanConfigured ? "Connected" : "Not configured"} />
-              <Stat label="Custom RPC" value={config?.solanaRpcConfigured ? "Connected" : "Public RPC"} />
+              <Stat
+                label="Solscan"
+                value={config?.solscanConfigured ? "Connected" : "Not configured"}
+              />
+              <Stat
+                label="Custom RPC"
+                value={config?.solanaRpcConfigured ? "Connected" : "Public RPC"}
+              />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -158,13 +165,16 @@ function Alerts() {
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {ALERT_TYPES.map(([name, body]) => (
                 <div key={name} className="rounded-sm border border-border bg-surface-2/40 p-3">
-                  <span className="num text-[11px] uppercase tracking-widest text-primary">{name}</span>
+                  <span className="num text-[11px] uppercase tracking-widest text-primary">
+                    {name}
+                  </span>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{body}</p>
                 </div>
               ))}
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground">
-              Thresholds are configured server-side via <span className="num">XNOVA_ALERT_MIN_TRADE_USD</span>,{" "}
+              Thresholds are configured server-side via{" "}
+              <span className="num">XNOVA_ALERT_MIN_TRADE_USD</span>,{" "}
               <span className="num">XNOVA_ALERT_WHALE_USD</span> and{" "}
               <span className="num">XNOVA_ALERT_PRICE_PCT</span>.
             </p>
@@ -186,7 +196,7 @@ function Alerts() {
           </Panel>
           <Panel title="NOTIFICATION FORMAT">
             <pre className="num overflow-x-auto whitespace-pre-wrap rounded-sm border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground">
-{`🚨 XNOVA WHALE ALERT
+              {`🚨 XNOVA WHALE ALERT
 
 Type: BUY
 Value: $8,421

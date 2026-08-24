@@ -43,7 +43,9 @@ interface DsToken {
 /** Live USD prices for a batch of SPL mints (DexScreener, public API). */
 async function fetchTokenPrices(
   mints: string[],
-): Promise<Map<string, { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }>> {
+): Promise<
+  Map<string, { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }>
+> {
   const out = new Map<
     string,
     { priceUsd: number; symbol: string | null; name: string | null; icon: string | null }
@@ -158,7 +160,12 @@ export async function fetchWalletPortfolio(address: string): Promise<WalletPortf
   if (!prices.has(XNOVA.tokenMint) && raw.some((t) => t.mint === XNOVA.tokenMint)) {
     const fallback = await fetchXnovaPriceFallback();
     if (fallback != null) {
-      prices.set(XNOVA.tokenMint, { priceUsd: fallback, symbol: "XNOVA", name: "XNOVA", icon: null });
+      prices.set(XNOVA.tokenMint, {
+        priceUsd: fallback,
+        symbol: "XNOVA",
+        name: "XNOVA",
+        icon: null,
+      });
     }
   }
 
@@ -180,7 +187,8 @@ export async function fetchWalletPortfolio(address: string): Promise<WalletPortf
   const solPriceUsd = prices.get(SOL_MINT)?.priceUsd ?? null;
   const solValueUsd = solPriceUsd != null ? solBalance * solPriceUsd : null;
   const priced = tokens.filter((t) => t.valueUsd != null);
-  const tokensValueUsd = priced.length > 0 ? priced.reduce((s, t) => s + (t.valueUsd ?? 0), 0) : null;
+  const tokensValueUsd =
+    priced.length > 0 ? priced.reduce((s, t) => s + (t.valueUsd ?? 0), 0) : null;
   const xnovaToken = tokens.find((t) => t.mint === XNOVA.tokenMint);
 
   return {
@@ -192,7 +200,9 @@ export async function fetchWalletPortfolio(address: string): Promise<WalletPortf
     xnovaValueUsd: xnovaToken?.valueUsd ?? null,
     tokensValueUsd,
     totalValueUsd:
-      solValueUsd != null || tokensValueUsd != null ? (solValueUsd ?? 0) + (tokensValueUsd ?? 0) : null,
+      solValueUsd != null || tokensValueUsd != null
+        ? (solValueUsd ?? 0) + (tokensValueUsd ?? 0)
+        : null,
     pricedCount: priced.length,
     tokens,
   };

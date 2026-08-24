@@ -32,7 +32,10 @@ export function HoldersPanel({ limit = 20 }: { limit?: number }) {
             </thead>
             <tbody>
               {data.data.holders.map((h) => (
-                <tr key={`${h.rank}-${h.address}`} className="border-b border-border/50 hover:bg-surface-2">
+                <tr
+                  key={`${h.rank}-${h.address}`}
+                  className="border-b border-border/50 hover:bg-surface-2"
+                >
                   <td className="num px-3 py-1.5 text-[11px] text-muted-foreground">{h.rank}</td>
                   <td className="num px-3 py-1.5 text-[11px]">
                     <a

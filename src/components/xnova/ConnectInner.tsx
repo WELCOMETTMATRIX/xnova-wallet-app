@@ -18,11 +18,15 @@ type ConnectableWallet = Wallet & StandardConnectFeature;
 type EventWallet = Wallet & StandardEventsFeature;
 
 function supportsSolana(wallet: Wallet): wallet is ConnectableWallet {
-  return StandardConnect in wallet.features && wallet.chains.some((chain) => chain.startsWith("solana:"));
+  return (
+    StandardConnect in wallet.features && wallet.chains.some((chain) => chain.startsWith("solana:"))
+  );
 }
 
 function accountFor(wallet: Wallet) {
-  return wallet.accounts.find((account) => account.chains.some((chain) => chain.startsWith("solana:")));
+  return wallet.accounts.find((account) =>
+    account.chains.some((chain) => chain.startsWith("solana:")),
+  );
 }
 
 export function ConnectInner() {
@@ -66,9 +70,11 @@ export function ConnectInner() {
     };
 
     syncAccount();
-    const eventFeature = activeWallet.features[StandardEvents] as {
-      on: (event: "change", listener: () => void) => (() => void) | undefined;
-    } | undefined;
+    const eventFeature = activeWallet.features[StandardEvents] as
+      | {
+          on: (event: "change", listener: () => void) => (() => void) | undefined;
+        }
+      | undefined;
     const off = eventFeature?.on("change", syncAccount);
     return () => off?.();
   }, [activeWallet]);
@@ -95,7 +101,11 @@ export function ConnectInner() {
       );
       if (!account) throw new Error("No Solana account was returned");
       setActiveWallet(wallet);
-      setConnectedWallet({ address: account.address, walletName: wallet.name, walletIcon: wallet.icon });
+      setConnectedWallet({
+        address: account.address,
+        walletName: wallet.name,
+        walletIcon: wallet.icon,
+      });
       setOpen(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Wallet connection was declined");
@@ -106,8 +116,7 @@ export function ConnectInner() {
 
   async function disconnect() {
     const disconnectFeature = activeWallet?.features[StandardDisconnect] as
-      | StandardDisconnectFeature[typeof StandardDisconnect]
-      | undefined;
+      StandardDisconnectFeature[typeof StandardDisconnect] | undefined;
     try {
       await disconnectFeature?.disconnect();
     } finally {
@@ -155,7 +164,9 @@ export function ConnectInner() {
                 <img src={activeWallet.icon} alt="" className="size-8 rounded-sm" />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium">{activeWallet.name}</p>
-                  <p className="num truncate text-[10px] text-muted-foreground">{account.address}</p>
+                  <p className="num truncate text-[10px] text-muted-foreground">
+                    {account.address}
+                  </p>
                 </div>
                 <Check className="size-4 text-primary" aria-label="Connected" />
               </div>
@@ -181,7 +192,9 @@ export function ConnectInner() {
                 >
                   <img src={wallet.icon} alt="" className="size-7 rounded-sm" />
                   <span className="flex-1 text-xs">{wallet.name}</span>
-                  <span className="label-xs">{connecting === wallet.name ? "CONNECTING" : "CONNECT"}</span>
+                  <span className="label-xs">
+                    {connecting === wallet.name ? "CONNECTING" : "CONNECT"}
+                  </span>
                 </button>
               ))}
             </div>

@@ -24,7 +24,13 @@ export const thirdwebClientId = () =>
 export const thirdwebSecretKey = () => env("THIRDWEB_SECRET_KEY");
 
 export const telegramApiKey = () =>
-  env("TELEGRAM_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_BOT", "TELEGRAM_TOKEN", "TELEGRAM_BOT_API_KEY");
+  env(
+    "TELEGRAM_API_KEY",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_BOT",
+    "TELEGRAM_TOKEN",
+    "TELEGRAM_BOT_API_KEY",
+  );
 
 export const telegramChatId = () => env("TELEGRAM_CHAT_ID", "TELEGRAM_CHAT", "TELEGRAM_GROUP_ID");
 
@@ -44,9 +50,6 @@ export const solanaRpcUrl = () => solanaRpcUrls()[0]!;
  */
 export function solanaRpcUrls(): string[] {
   const configured = env("SOLANA_RPC_URL", "HELIUS_RPC_URL", "QUICKNODE_RPC_URL");
-  const publics = [
-    "https://solana-rpc.publicnode.com",
-    "https://api.mainnet-beta.solana.com",
-  ];
+  const publics = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
   return configured ? [configured, ...publics] : publics;
 }

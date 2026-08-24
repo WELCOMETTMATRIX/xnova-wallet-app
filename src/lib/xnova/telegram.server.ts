@@ -66,11 +66,12 @@ export function formatTradeAlert(trade: Trade, whale: boolean): string {
   return lines.filter(Boolean).join("\n");
 }
 
-export function formatPriceAlert(
-  label: string,
-  message: string,
-): string {
-  return [`⚡ <b>XNOVA ${label}</b>`, ``, message, ``, `<a href="${XNOVA.website}">Open Terminal →</a>`].join(
-    "\n",
-  );
+export function formatPriceAlert(label: string, message: string): string {
+  return [
+    `⚡ <b>XNOVA ${label}</b>`,
+    ``,
+    message,
+    ``,
+    `<a href="${XNOVA.website}">Open Terminal →</a>`,
+  ].join("\n");
 }

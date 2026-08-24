@@ -117,7 +117,8 @@ async function command(cmd: string, chatId: string) {
     case "/whales": {
       try {
         const trades = (await fetchTrades(2500)).slice(0, 8);
-        if (trades.length === 0) return reply(chatId, "No large transactions in the recent window.");
+        if (trades.length === 0)
+          return reply(chatId, "No large transactions in the recent window.");
         const rows = trades
           .map(
             (t) =>

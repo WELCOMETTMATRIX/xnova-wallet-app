@@ -1,6 +1,11 @@
 import { fetchMarket as fetchMarketSnapshot } from "./providers/market.server";
 import { fetchTrades } from "./providers/geckoterminal.server";
-import { formatPriceAlert, formatTradeAlert, sendTelegram, telegramConfigured } from "./telegram.server";
+import {
+  formatPriceAlert,
+  formatTradeAlert,
+  sendTelegram,
+  telegramConfigured,
+} from "./telegram.server";
 import { formatPct, formatUsd } from "./config";
 
 export interface AlertThresholds {
@@ -54,7 +59,11 @@ function thresholds(): AlertThresholds {
  * Scans recent on-chain trade activity and pushes a Telegram notification for
  * every qualifying buy / sell, plus price-move alerts. Idempotent per trade.
  */
-export async function runAlertScan(): Promise<{ scanned: number; notified: number; skipped?: string }> {
+export async function runAlertScan(): Promise<{
+  scanned: number;
+  notified: number;
+  skipped?: string;
+}> {
   state.lastRunAt = Date.now();
   state.lastError = null;
 

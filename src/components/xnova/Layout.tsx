@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { BadgeCheck, DatabaseZap, LockKeyhole, Menu, ShieldCheck, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { TELEGRAM_ICON, XNOVA } from "@/lib/xnova/config";
@@ -15,6 +15,37 @@ const NAV = [
   { to: "/alerts", label: "Alerts" },
   { to: "/staking", label: "Staking" },
 ] as const;
+
+const TRUST_BADGES = [
+  { label: "Non-custodial", detail: "Keys stay in wallet", icon: LockKeyhole },
+  { label: "Live data", detail: "Provider failover", icon: DatabaseZap },
+  { label: "Verified links", detail: "Official explorers", icon: BadgeCheck },
+  { label: "Risk aware", detail: "No seed phrases", icon: ShieldCheck },
+] as const;
+
+export function TrustBadges({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={cn("flex flex-wrap gap-2", compact && "gap-1.5")}>
+      {TRUST_BADGES.map((badge) => (
+        <div
+          key={badge.label}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-sm border border-primary/25 bg-primary/5 text-foreground",
+            compact ? "px-2 py-1" : "px-3 py-2",
+          )}
+        >
+          <badge.icon className="size-3.5 text-primary" aria-hidden />
+          <span className="leading-none">
+            <span className="num block text-[10px] uppercase tracking-widest">{badge.label}</span>
+            {!compact ? (
+              <span className="mt-1 block text-[10px] text-muted-foreground">{badge.detail}</span>
+            ) : null}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function Brand() {
   return (
@@ -95,9 +126,12 @@ export function TerminalLayout({ children }: { children: ReactNode }) {
           <div>
             <Brand />
             <p className="mt-2 max-w-md text-[11px] text-muted-foreground">
-              Open-source Solana intelligence terminal. Market, on-chain and alerting data is fetched
-              live from public providers — never fabricated. Not financial advice.
+              Open-source Solana intelligence terminal. Market, on-chain and alerting data is
+              fetched live from public providers — never fabricated. Not financial advice.
             </p>
+            <div className="mt-3">
+              <TrustBadges compact />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {[

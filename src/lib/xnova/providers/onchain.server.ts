@@ -24,7 +24,9 @@ export async function solanaRpc<T>(method: string, params: unknown[]): Promise<T
       if (payload.result === undefined) throw new Error("Empty Solana RPC result");
       return payload.result;
     } catch (error) {
-      console.warn(`[xnova:rpc] ${method} failed on ${new URL(url).host}: ${(error as Error).message.slice(0, 120)}`);
+      console.warn(
+        `[xnova:rpc] ${method} failed on ${new URL(url).host}: ${(error as Error).message.slice(0, 120)}`,
+      );
       lastError = error;
     }
   }
@@ -98,7 +100,6 @@ export async function fetchChainTopHolders(
       }),
     );
 
-
     const holders: Holder[] = accounts.map((a, i) => {
       const amount = a.uiAmount ?? Number(a.amount) / 10 ** a.decimals;
       return {
@@ -136,49 +137,50 @@ export async function fetchChainTransfers(limit = 20): Promise<Transfer[]> {
     for (const s of ok) {
       parsed.push(
         await (async () => {
-        try {
-          const tx = await solanaRpc<{
-            meta?: {
-              preTokenBalances?: {
-                mint: string;
-                owner?: string;
-                uiTokenAmount: { uiAmount: number | null };
-              }[];
-              postTokenBalances?: {
-                mint: string;
-                owner?: string;
-                uiTokenAmount: { uiAmount: number | null };
-              }[];
-            };
-            blockTime?: number;
-          }>("getTransaction", [
-            s.signature,
-            { maxSupportedTransactionVersion: 0, encoding: "jsonParsed" },
-          ]);
+          try {
+            const tx = await solanaRpc<{
+              meta?: {
+                preTokenBalances?: {
+                  mint: string;
+                  owner?: string;
+                  uiTokenAmount: { uiAmount: number | null };
+                }[];
+                postTokenBalances?: {
+                  mint: string;
+                  owner?: string;
+                  uiTokenAmount: { uiAmount: number | null };
+                }[];
+              };
+              blockTime?: number;
+            }>("getTransaction", [
+              s.signature,
+              { maxSupportedTransactionVersion: 0, encoding: "jsonParsed" },
+            ]);
 
-          const pre = (tx.meta?.preTokenBalances ?? []).filter((b) => b.mint === XNOVA.tokenMint);
-          const post = (tx.meta?.postTokenBalances ?? []).filter((b) => b.mint === XNOVA.tokenMint);
-          if (post.length === 0) return null;
+            const pre = (tx.meta?.preTokenBalances ?? []).filter((b) => b.mint === XNOVA.tokenMint);
+            const post = (tx.meta?.postTokenBalances ?? []).filter(
+              (b) => b.mint === XNOVA.tokenMint,
+            );
+            if (post.length === 0) return null;
 
-          const deltas = post.map((b) => {
-            const before =
-              pre.find((x) => x.owner === b.owner)?.uiTokenAmount.uiAmount ?? 0;
-            return { owner: b.owner ?? "", delta: (b.uiTokenAmount.uiAmount ?? 0) - before };
-          });
-          const receiver = deltas.filter((d) => d.delta > 0).sort((a, b) => b.delta - a.delta)[0];
-          const sender = deltas.filter((d) => d.delta < 0).sort((a, b) => a.delta - b.delta)[0];
-          if (!receiver && !sender) return null;
+            const deltas = post.map((b) => {
+              const before = pre.find((x) => x.owner === b.owner)?.uiTokenAmount.uiAmount ?? 0;
+              return { owner: b.owner ?? "", delta: (b.uiTokenAmount.uiAmount ?? 0) - before };
+            });
+            const receiver = deltas.filter((d) => d.delta > 0).sort((a, b) => b.delta - a.delta)[0];
+            const sender = deltas.filter((d) => d.delta < 0).sort((a, b) => a.delta - b.delta)[0];
+            if (!receiver && !sender) return null;
 
-          return {
-            signature: s.signature,
-            from: sender?.owner ?? "",
-            to: receiver?.owner ?? "",
-            amount: Math.abs(receiver?.delta ?? sender?.delta ?? 0),
-            timestamp: (tx.blockTime ?? s.blockTime ?? 0) * 1000,
-          } satisfies Transfer;
-        } catch {
-          return null;
-        }
+            return {
+              signature: s.signature,
+              from: sender?.owner ?? "",
+              to: receiver?.owner ?? "",
+              amount: Math.abs(receiver?.delta ?? sender?.delta ?? 0),
+              timestamp: (tx.blockTime ?? s.blockTime ?? 0) * 1000,
+            } satisfies Transfer;
+          } catch {
+            return null;
+          }
         })(),
       );
     }
