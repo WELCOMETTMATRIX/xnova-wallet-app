@@ -17,8 +17,9 @@ export interface AlertThresholds {
   pricePct: number;
 }
 
+// Every trade from $1 upwards is reported, with no upper bound.
 export const DEFAULT_THRESHOLDS: AlertThresholds = {
-  minTradeUsd: 250,
+  minTradeUsd: 1,
   whaleUsd: 5_000,
   pricePct: 10,
 };
