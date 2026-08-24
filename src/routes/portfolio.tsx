@@ -158,10 +158,9 @@ function Portfolio() {
                   <Stat
                     label="XNOVA"
                     value={formatNum(p?.xnovaBalance ?? null)}
-                    sub={formatUsd(
-                      p?.tokens.find((t) => t.mint === XNOVA.tokenMint)?.valueUsd ?? null,
-                    )}
+                    sub={p?.xnovaValueUsd != null ? formatUsd(p.xnovaValueUsd) : "No live pair"}
                   />
+
                   <Stat label="SPL tokens" value={formatNum(p?.tokens.length ?? null)} />
                 </div>
 
