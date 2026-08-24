@@ -131,3 +131,26 @@ export async function runAlertScan(): Promise<{
 
   return { scanned, notified };
 }
+
+/**
+ * Automatic scheduler. The scan is fully agent-driven: any live data request
+ * from the terminal or the public market endpoint keeps the alert loop warm,
+ * throttled so the upstream providers are never hammered. Users cannot enable,
+ * disable or configure alerts — the engine decides on its own.
+ */
+const AUTO_INTERVAL_MS = 45_000;
+let inFlight: Promise<unknown> | null = null;
+
+export async function maybeRunAlertScan(): Promise<void> {
+  if (!telegramConfigured()) return;
+  if (inFlight) return;
+  if (Date.now() - state.lastRunAt < AUTO_INTERVAL_MS) return;
+  inFlight = runAlertScan().catch((error: unknown) => {
+    console.error("[xnova:autoscan]", error instanceof Error ? error.message : error);
+  });
+  try {
+    await inFlight;
+  } finally {
+    inFlight = null;
+  }
+}
