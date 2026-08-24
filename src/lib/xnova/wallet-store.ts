@@ -6,12 +6,11 @@ import { useSyncExternalStore } from "react";
 
 export interface ConnectedWallet {
   address: string | null;
-  chainId: number | null;
-  chainName: string | null;
-  walletId: string | null;
+  walletName: string | null;
+  walletIcon: string | null;
 }
 
-const EMPTY: ConnectedWallet = { address: null, chainId: null, chainName: null, walletId: null };
+const EMPTY: ConnectedWallet = { address: null, walletName: null, walletIcon: null };
 
 let state: ConnectedWallet = EMPTY;
 const listeners = new Set<() => void>();
@@ -19,8 +18,8 @@ const listeners = new Set<() => void>();
 export function setConnectedWallet(next: ConnectedWallet) {
   if (
     next.address === state.address &&
-    next.chainId === state.chainId &&
-    next.walletId === state.walletId
+    next.walletName === state.walletName &&
+    next.walletIcon === state.walletIcon
   ) {
     return;
   }

@@ -2,23 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Wallet } from "lucide-react";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { TerminalLayout } from "@/components/xnova/Layout";
 import { BrandLogo } from "@/components/xnova/BrandLogo";
 import { Loading, Panel, Stat, Unavailable } from "@/components/xnova/primitives";
 import { XNOVA, formatNum, formatUsd, shortAddress, solscanAccount } from "@/lib/xnova/config";
-import { publicConfigQuery } from "@/lib/xnova/queries";
 import { getWalletPortfolio } from "@/lib/xnova/wallet.functions";
 import {
   loadSavedSolanaAddress,
   saveSolanaAddress,
   useConnectedWallet,
 } from "@/lib/xnova/wallet-store";
-
-const EvmBalance = lazy(() =>
-  import("@/components/xnova/EvmBalance").then((m) => ({ default: m.EvmBalance })),
-);
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -43,7 +38,6 @@ export const Route = createFileRoute("/portfolio")({
 
 function Portfolio() {
   const connected = useConnectedWallet();
-  const { data: config } = useQuery(publicConfigQuery());
   const [input, setInput] = useState("");
   const [address, setAddress] = useState("");
 
@@ -55,6 +49,12 @@ function Portfolio() {
       setAddress(saved);
     }
   }, []);
+
+  useEffect(() => {
+    if (!connected.address) return;
+    setInput(connected.address);
+    setAddress(connected.address);
+  }, [connected.address]);
 
   const portfolio = useQuery({
     queryKey: ["xnova", "portfolio", address],
@@ -80,22 +80,17 @@ function Portfolio() {
           title="CONNECTED ACCOUNT"
           action={<span className="label-xs">{connected.address ? "LIVE" : "NOT CONNECTED"}</span>}
         >
-          {connected.address && connected.chainId && config?.thirdwebClientId ? (
-            <ClientOnly fallback={<Loading label="Reading wallet" />}>
-              <Suspense fallback={<Loading label="Reading wallet" />}>
-                <EvmBalance
-                  clientId={config.thirdwebClientId}
-                  address={connected.address}
-                  chainId={connected.chainId}
-                  chainName={connected.chainName}
-                />
-              </Suspense>
-            </ClientOnly>
+          {connected.address ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <Stat label="Account" value={shortAddress(connected.address, 6)} sub={connected.walletName ?? "Solana wallet"} />
+              <Stat label="Network" value="Solana" sub="Mainnet" />
+              <Stat label="Portfolio" value="Synced" sub="Balances shown below" />
+            </div>
           ) : (
             <div className="flex items-center gap-3 py-4 text-[11px] text-muted-foreground">
               <Wallet className="size-4" aria-hidden />
-              Connect MetaMask or Crypto.com Onchain from the header to stream your account balance
-              here. Solana holdings are inspected by address below.
+              Connect Phantom, Solflare, Backpack, or Crypto.com Onchain from the header. Your SOL,
+              XNOVA, and SPL token balances will load automatically below.
             </div>
           )}
         </Panel>
