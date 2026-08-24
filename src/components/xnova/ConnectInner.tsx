@@ -85,9 +85,11 @@ export function ConnectInner() {
     setConnecting(wallet.name);
     setError(null);
     try {
-      const result = await wallet.features[StandardConnect].connect();
+      const result = (await wallet.features[StandardConnect].connect()) as {
+        accounts: Array<{ address: string; chains: string[] }>;
+      };
       const account = result.accounts.find((candidate) =>
-        candidate.chains.some((chain) => chain.startsWith("solana:")),
+        candidate.chains.some((chain: string) => chain.startsWith("solana:")),
       );
       if (!account) throw new Error("No Solana account was returned");
       setActiveWallet(wallet);
