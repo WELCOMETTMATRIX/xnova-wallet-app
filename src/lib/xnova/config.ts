@@ -12,6 +12,8 @@ export const XNOVA = {
   website: "https://xnovasolanax.vercel.app/",
   links: {
     dexscreener: "https://dexscreener.com/solana/6xwpjsscvhpmaigzstcbm95rmbmqmzperrysxfspynht",
+    geckoterminal: "https://www.geckoterminal.com/solana/pools/6XwPJSsCvHpMaiGZstCbm95RmBMQMZpErRYSXfsPyNhT",
+    jupiter: "https://jup.ag/tokens/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump",
     pumpfun:
       "https://pump.fun/coin/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump?clip=20260822_060828%3A2485098_20260822_060800",
     solscan: "https://solscan.io/token/9RwukCBfqoXb4XaqDvchKs8LhSmbbdcVik1S9h47pump",
@@ -19,6 +21,7 @@ export const XNOVA = {
     github: "https://github.com/xnova-solana",
     telegram: "https://t.me/",
   },
+
 } as const;
 
 export const TELEGRAM_ICON = "https://assets.lovable.dev/img/connectors/telegram.svg";
